@@ -22,7 +22,7 @@ export function FourInARow() {
       for (let rowIndex = 0; rowIndex < squares.length; rowIndex++) {
         const row = squares[rowIndex];
         if (row && row[0] !== null && row[0] === row[1]) {
-          console.log(`Winner is ${row[0]}`);
+          console.log(`Winner is ${winner}`);
           return row[0] as CellValue;
         }
       }
@@ -50,6 +50,8 @@ export function FourInARow() {
     <>
       <Banner />
       <h1>Game goes here</h1>
+
+      {winner && <p>Winner is {winner}</p>}
 
       <table>
         <tbody>
