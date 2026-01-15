@@ -5,15 +5,14 @@ import "../styles.css";
 
 type CellValue = null | "red" | "blue";
 
+function createEmptyGame(): CellValue[][] {
+  return Array(6)
+    .fill(null)
+    .map(() => Array(7).fill(null));
+}
+
 export function FourInARow() {
-  const [squares, setSquares] = useState<CellValue[][]>([
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-  ]);
+  const [squares, setSquares] = useState<CellValue[][]>(createEmptyGame());
   const [turn, setTurn] = useState<CellValue>("red");
   const [winner, setWinner] = useState<CellValue>(null);
 
@@ -35,6 +34,8 @@ export function FourInARow() {
   function handleClick(rowIndex: number, columnIndex: number) {
     console.log(`Clicked cell at row: ${rowIndex}, column: ${columnIndex}`);
 
+    if (winner) return;
+
     setSquares((old) => {
       if (old[rowIndex]![columnIndex]) return old;
 
@@ -46,12 +47,24 @@ export function FourInARow() {
     });
   }
 
+  function handleNewGame() {
+    setWinner(null);
+    setTurn("red");
+    setSquares(createEmptyGame());
+  }
+
   return (
     <>
       <Banner />
-      <h1>Game goes here</h1>
+      <h1>Four In a Row</h1>
+      {!winner && <p>{turn}'s turn</p>}
 
-      {winner && <p>Winner is {winner}</p>}
+      {winner && (
+        <>
+          <p>Winner is {winner}</p>
+          <p onClick={() => handleNewGame()}>Play again?</p>
+        </>
+      )}
 
       <table>
         <tbody>

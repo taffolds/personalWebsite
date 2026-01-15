@@ -17,3 +17,14 @@ describe("Shows horizontal win", () => {
     expect(winnerMessage).toBeTruthy();
   });
 });
+
+describe("Asks user to play again", () => {
+  it("returns play again message", () => {
+    render(<FourInARow />);
+    fireEvent.click(screen.getByText("(0, 0)"));
+    fireEvent.click(screen.getByText("(1, 0)"));
+    fireEvent.click(screen.getByText("(0, 1)"));
+    const gameOverMessage = screen.queryByText("Play again?");
+    expect(gameOverMessage).toBeTruthy();
+  });
+});
