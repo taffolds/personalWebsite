@@ -28,3 +28,12 @@ describe("Asks user to play again", () => {
     expect(gameOverMessage).toBeTruthy();
   });
 });
+
+it("prevents user from clicking board after winner is declared", () => {
+  render(<FourInARow />);
+  fireEvent.click(screen.getByText("(0, 0)"));
+  fireEvent.click(screen.getByText("(1, 0)"));
+  fireEvent.click(screen.getByText("(0, 1)"));
+  fireEvent.click(screen.getByText("(1, 1)"));
+  expect(screen.queryByText("(1, 1)")).toBeTruthy();
+});
