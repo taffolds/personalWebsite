@@ -11,45 +11,47 @@ function createEmptyGame(): CellValue[][] {
     .map(() => Array(7).fill(null));
 }
 
+const checkWinner = (board: CellValue[][]): CellValue => {
+  return checkHorizontalWin(board);
+};
+
+const checkHorizontalWin = (board: CellValue[][]): CellValue => {
+  const winningLength = 4;
+
+  for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
+    const row = board[rowIndex];
+
+    for (
+      let columnIndex = 0;
+      columnIndex <= row!.length - winningLength;
+      columnIndex++
+    ) {
+      const valueInCell = row![columnIndex];
+      if (valueInCell === null) continue;
+      let isWinner = true;
+      for (let i = 1; i < winningLength; i++) {
+        if (row![columnIndex + i] !== valueInCell) {
+          isWinner = false;
+          break;
+        }
+      }
+
+      if (isWinner) return valueInCell!;
+    }
+  }
+  return null;
+};
+
 export function FourInARow() {
   const [board, setBoard] = useState<CellValue[][]>(createEmptyGame());
   const [turn, setTurn] = useState<CellValue>("red");
   const [winner, setWinner] = useState<CellValue>(null);
 
   useEffect(() => {
-    const checkWinner = (): CellValue => {
-      const winningLength = 4;
-
-      for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
-        const row = board[rowIndex];
-
-        for (
-          let columnIndex = 0;
-          columnIndex <= row!.length - winningLength;
-          columnIndex++
-        ) {
-          const valueInCell = row![columnIndex];
-          if (valueInCell === null) continue;
-          let isWinner = true;
-          for (let i = 1; i < winningLength; i++) {
-            if (row![columnIndex + i] !== valueInCell) {
-              isWinner = false;
-              break;
-            }
-          }
-
-          if (isWinner) return valueInCell!;
-        }
-      }
-      return null;
-    };
-
-    setWinner(checkWinner());
+    setWinner(checkWinner(board));
   }, [board]);
 
   function handleClick(rowIndex: number, columnIndex: number) {
-    console.log(`Clicked cell at row: ${rowIndex}, column: ${columnIndex}`);
-
     if (winner) return;
 
     setBoard((oldBoard) => {
