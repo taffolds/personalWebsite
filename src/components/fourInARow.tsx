@@ -74,6 +74,7 @@ export function FourInARow() {
                 <td
                   key={columnIndex}
                   className="cells"
+                  data-testid={`${rowIndex}-${columnIndex}`}
                   onClick={() => handleClick(rowIndex, columnIndex)}
                 >
                   {r || `(${rowIndex}, ${columnIndex})`}
