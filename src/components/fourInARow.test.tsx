@@ -35,6 +35,29 @@ describe("Shows horizontal win", () => {
   });
 });
 
+describe("Shows vertical win", () => {
+  it("detects 4 verticals as win", () => {
+    render(<FourInARow />);
+    clickCell(1, 3);
+    clickCell(0, 0);
+    clickCell(2, 3);
+    clickCell(1, 0);
+    clickCell(3, 3);
+    clickCell(2, 0);
+    clickCell(4, 3);
+    const winnerMessage = screen.queryByText("Winner is red");
+    expect(winnerMessage).toBeTruthy();
+  });
+  it("does not detect 3 verticals as win", () => {
+    clickCell(1, 3);
+    clickCell(0, 0);
+    clickCell(2, 3);
+    clickCell(1, 0);
+    clickCell(3, 3);
+    expect(screen.queryByText("Winner is red")).toBeNull();
+  });
+});
+
 describe("Asks user to play again", () => {
   it("returns play again message", () => {
     render(<FourInARow />);
