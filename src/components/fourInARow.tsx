@@ -18,7 +18,7 @@ export function FourInARow() {
 
   useEffect(() => {
     const checkWinner = (): CellValue => {
-      const winningLength = 3;
+      const winningLength = 4;
 
       for (let rowIndex = 0; rowIndex < squares.length; rowIndex++) {
         const row = squares[rowIndex];

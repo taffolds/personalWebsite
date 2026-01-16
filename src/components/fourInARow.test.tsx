@@ -11,22 +11,26 @@ const clickCell = (row: number, column: number) => {
 };
 
 describe("Shows horizontal win", () => {
-  it("detects 3 horizontals as win", () => {
+  it("detects 4 horizontals as win", () => {
     render(<FourInARow />);
-    clickCell(2, 0);
-    clickCell(1, 0);
-    clickCell(2, 1);
-    clickCell(0, 2);
-    clickCell(2, 2);
+    clickCell(3, 3);
+    clickCell(0, 0);
+    clickCell(3, 4);
+    clickCell(1, 1);
+    clickCell(3, 5);
+    clickCell(1, 5);
+    clickCell(3, 6);
     const winnerMessage = screen.queryByText("Winner is red");
     expect(winnerMessage).toBeTruthy();
   });
 
-  it("does not detect 2 horizontals as win", () => {
+  it("does not detect 3 horizontals as win", () => {
     render(<FourInARow />);
     clickCell(2, 0);
     clickCell(1, 0);
     clickCell(2, 1);
+    clickCell(1, 1);
+    clickCell(2, 2);
     expect(screen.queryByText("Winner is red")).toBeNull();
   });
 });
@@ -37,6 +41,10 @@ describe("Asks user to play again", () => {
     clickCell(0, 0);
     clickCell(1, 0);
     clickCell(0, 1);
+    clickCell(1, 2);
+    clickCell(0, 2);
+    clickCell(1, 3);
+    clickCell(0, 3);
     const gameOverMessage = screen.queryByText("Play again?");
     expect(gameOverMessage).toBeTruthy();
   });
@@ -47,6 +55,15 @@ it("prevents user from clicking board after winner is declared", () => {
   clickCell(0, 0);
   clickCell(1, 0);
   clickCell(0, 1);
-  clickCell(1, 1);
-  expect(screen.queryByText("(1, 1)")).toBeTruthy();
+  clickCell(1, 2);
+  clickCell(0, 2);
+  clickCell(1, 3);
+  clickCell(0, 3);
+
+  const blueCountBeforeClick = screen.queryAllByText("blue").length;
+
+  clickCell(1, 3);
+
+  const blueCountAfterClick = screen.queryAllByText("blue").length;
+  expect(blueCountAfterClick).toBe(blueCountBeforeClick);
 });
