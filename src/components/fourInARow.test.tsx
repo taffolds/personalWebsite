@@ -49,6 +49,7 @@ describe("Shows vertical win", () => {
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 verticals as win", () => {
+    render(<FourInARow />);
     clickCell(1, 3);
     clickCell(0, 0);
     clickCell(2, 3);
