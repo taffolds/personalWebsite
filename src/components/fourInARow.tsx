@@ -12,7 +12,7 @@ function createEmptyGame(): CellValue[][] {
 }
 
 export function FourInARow() {
-  const [squares, setSquares] = useState<CellValue[][]>(createEmptyGame());
+  const [board, setBoard] = useState<CellValue[][]>(createEmptyGame());
   const [turn, setTurn] = useState<CellValue>("red");
   const [winner, setWinner] = useState<CellValue>(null);
 
@@ -20,8 +20,8 @@ export function FourInARow() {
     const checkWinner = (): CellValue => {
       const winningLength = 4;
 
-      for (let rowIndex = 0; rowIndex < squares.length; rowIndex++) {
-        const row = squares[rowIndex];
+      for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
+        const row = board[rowIndex];
 
         for (
           let columnIndex = 0;
@@ -45,17 +45,17 @@ export function FourInARow() {
     };
 
     setWinner(checkWinner());
-  }, [squares]);
+  }, [board]);
 
   function handleClick(rowIndex: number, columnIndex: number) {
     console.log(`Clicked cell at row: ${rowIndex}, column: ${columnIndex}`);
 
     if (winner) return;
 
-    setSquares((old) => {
-      if (old[rowIndex]![columnIndex]) return old;
+    setBoard((oldBoard) => {
+      if (oldBoard[rowIndex]![columnIndex]) return oldBoard;
 
-      const updated = [...old];
+      const updated = [...oldBoard];
       updated[rowIndex] = [...updated[rowIndex]!];
       updated[rowIndex][columnIndex] = turn;
       setTurn((t) => (t === "red" ? "blue" : "red"));
@@ -66,7 +66,7 @@ export function FourInARow() {
   function handleNewGame() {
     setWinner(null);
     setTurn("red");
-    setSquares(createEmptyGame());
+    setBoard(createEmptyGame());
   }
 
   return (
@@ -84,7 +84,7 @@ export function FourInARow() {
 
       <table>
         <tbody>
-          {squares.map((row, rowIndex) => (
+          {board.map((row, rowIndex) => (
             <tr key={rowIndex}>
               {row.map((r, columnIndex) => (
                 <td
