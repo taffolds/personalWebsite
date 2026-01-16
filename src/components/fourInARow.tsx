@@ -18,11 +18,27 @@ export function FourInARow() {
 
   useEffect(() => {
     const checkWinner = (): CellValue => {
+      const winningLength = 3;
+
       for (let rowIndex = 0; rowIndex < squares.length; rowIndex++) {
         const row = squares[rowIndex];
-        if (row && row[0] !== null && row[0] === row[1]) {
-          console.log(`Winner is ${winner}`);
-          return row[0] as CellValue;
+
+        for (
+          let columnIndex = 0;
+          columnIndex <= row!.length - winningLength;
+          columnIndex++
+        ) {
+          const valueInCell = row![columnIndex];
+          if (valueInCell === null) continue;
+          let isWinner = true;
+          for (let i = 1; i < winningLength; i++) {
+            if (row![columnIndex + i] !== valueInCell) {
+              isWinner = false;
+              break;
+            }
+          }
+
+          if (isWinner) return valueInCell!;
         }
       }
       return null;
