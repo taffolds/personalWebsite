@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
 import { FourInARow } from "./fourInARow.js";
 
 vi.mock("./banner.js", () => ({
@@ -132,6 +133,17 @@ describe("Shows rising diagonal win", () => {
     clickCell(3, 4);
     expect(screen.queryByText("Winner is red")).toBeNull();
   });
+});
+
+describe("Makes pieces fall down to closest available cell", () => {
+  it("falls all the way down when there's no pieces on the board", () => {
+    render(<FourInARow />);
+    clickCell(0, 0);
+    const bottomLeftCell = screen.getByTestId("5-0");
+    expect(bottomLeftCell).toHaveTextContent("red");
+  });
+  // Falls on top of other piece
+  // Nothing happens when clicked on full column, turn doesn't change
 });
 
 describe("Asks user to play again", () => {
