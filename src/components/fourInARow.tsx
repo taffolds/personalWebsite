@@ -11,10 +11,42 @@ function createEmptyGame(): CellValue[][] {
     .map(() => Array(7).fill(null));
 }
 
+// COLUMN: board.length = 6
+// ROW: board[0].length = 7
+
 const winningLength = 4;
 
 const checkWinner = (board: CellValue[][]): CellValue => {
-  return checkHorizontalWin(board) || checkVerticalWin(board);
+  return (
+    checkHorizontalWin(board) ||
+    checkVerticalWin(board) ||
+    checkFallingDiagonalWin(board)
+  );
+};
+
+const checkFallingDiagonalWin = (board: CellValue[][]): CellValue => {
+  // row length - winning length
+  // column length - winning length
+  // for each iteration, add one to row and column
+  for (let rowIndex = 0; rowIndex <= board.length - winningLength; rowIndex++) {
+    for (
+      let columnIndex = 0;
+      columnIndex <= board[0]!.length - winningLength;
+      columnIndex++
+    ) {
+      const valueInCell = board[rowIndex]![columnIndex];
+      if (valueInCell === null) continue;
+      let isWinner = true;
+      for (let i = 1; i < winningLength; i++) {
+        if (board[rowIndex + i]![columnIndex + i] !== valueInCell) {
+          isWinner = false;
+          break;
+        }
+      }
+      if (isWinner) return valueInCell!;
+    }
+  }
+  return null;
 };
 
 const checkHorizontalWin = (board: CellValue[][]): CellValue => {
