@@ -20,8 +20,31 @@ const checkWinner = (board: CellValue[][]): CellValue => {
   return (
     checkHorizontalWin(board) ||
     checkVerticalWin(board) ||
-    checkFallingDiagonalWin(board)
+    checkFallingDiagonalWin(board) ||
+    checkRisingDiagonalWin(board)
   );
+};
+
+const checkRisingDiagonalWin = (board: CellValue[][]): CellValue => {
+  for (let rowIndex = winningLength - 1; rowIndex < board.length; rowIndex++) {
+    for (
+      let columnIndex = 0;
+      columnIndex <= board[0]!.length - winningLength;
+      columnIndex++
+    ) {
+      const valueInCell = board[rowIndex]![columnIndex];
+      if (valueInCell === null) continue;
+      let isWinner = true;
+      for (let i = 1; i < winningLength; i++) {
+        if (board[rowIndex - i]![columnIndex + i] !== valueInCell) {
+          isWinner = false;
+          break;
+        }
+      }
+      if (isWinner) return valueInCell!;
+    }
+  }
+  return null;
 };
 
 const checkFallingDiagonalWin = (board: CellValue[][]): CellValue => {
@@ -78,7 +101,7 @@ const checkVerticalWin = (board: CellValue[][]): CellValue => {
   for (let columnIndex = 0; columnIndex < board[0]!.length; columnIndex++) {
     for (
       let rowIndex = 0;
-      rowIndex <= board[0]!.length - winningLength;
+      rowIndex <= board.length - winningLength;
       rowIndex++
     ) {
       const valueInCell = board[rowIndex]![columnIndex];
