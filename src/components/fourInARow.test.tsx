@@ -59,6 +59,43 @@ describe("Shows vertical win", () => {
   });
 });
 
+describe("Shows falling diagonal win", () => {
+  it("detects 4 falling diagonals in the top left as a win", () => {
+    render(<FourInARow />);
+    clickCell(0, 0);
+    clickCell(0, 1);
+    clickCell(1, 1);
+    clickCell(1, 2);
+    clickCell(2, 2);
+    clickCell(2, 3);
+    clickCell(3, 3);
+    const winnerMessage = screen.queryByText("Winner is red");
+    expect(winnerMessage).toBeTruthy();
+  });
+  it("detects 4 falling diagonals in the bottom right as a win", () => {
+    render(<FourInARow />);
+    clickCell(0, 0);
+    clickCell(5, 6);
+    clickCell(0, 6);
+    clickCell(3, 4);
+    clickCell(5, 0);
+    clickCell(2, 3);
+    clickCell(4, 0);
+    clickCell(4, 5);
+    const winnerMessage = screen.getByText("Winner is blue");
+    expect(winnerMessage).toBeTruthy();
+  });
+  it("does not detect 3 falling diagonals as a win", () => {
+    render(<FourInARow />);
+    clickCell(0, 0);
+    clickCell(1, 0);
+    clickCell(1, 1);
+    clickCell(2, 0);
+    clickCell(2, 2);
+    expect(screen.queryByText("Winner is red")).toBeNull();
+  });
+});
+
 describe("Asks user to play again", () => {
   it("returns play again message", () => {
     render(<FourInARow />);
