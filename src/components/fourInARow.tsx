@@ -128,17 +128,19 @@ export function FourInARow() {
     setWinner(checkWinner(board));
   }, [board]);
 
-  function handleClick(rowIndex: number, columnIndex: number) {
+  function handleClick(columnIndex: number) {
     if (winner) return;
-
     setBoard((oldBoard) => {
-      if (oldBoard[rowIndex]![columnIndex]) return oldBoard;
-
-      const updated = [...oldBoard];
-      updated[rowIndex] = [...updated[rowIndex]!];
-      updated[rowIndex][columnIndex] = turn;
-      setTurn((t) => (t === "red" ? "blue" : "red"));
-      return updated;
+      for (let i = board.length - 1; i >= 0; i--) {
+        if (!oldBoard[i]![columnIndex]) {
+          const updated = [...oldBoard];
+          updated[i] = [...updated[i]!];
+          updated[i]![columnIndex] = turn;
+          setTurn((t) => (t === "red" ? "blue" : "red"));
+          return updated;
+        }
+      }
+      return oldBoard;
     });
   }
 
@@ -170,7 +172,7 @@ export function FourInARow() {
                   key={columnIndex}
                   className="cells"
                   data-testid={`${rowIndex}-${columnIndex}`}
-                  onClick={() => handleClick(rowIndex, columnIndex)}
+                  onClick={() => handleClick(columnIndex)}
                 >
                   {r || `(${rowIndex}, ${columnIndex})`}
                 </td>

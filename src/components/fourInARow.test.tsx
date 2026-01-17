@@ -142,8 +142,30 @@ describe("Makes pieces fall down to closest available cell", () => {
     const bottomLeftCell = screen.getByTestId("5-0");
     expect(bottomLeftCell).toHaveTextContent("red");
   });
-  // Falls on top of other piece
-  // Nothing happens when clicked on full column, turn doesn't change
+  it("falls on top of other piece", () => {
+    render(<FourInARow />);
+    clickCell(0, 6);
+    clickCell(0, 6);
+    clickCell(0, 5);
+    clickCell(0, 5);
+    const cell4_6 = screen.getByTestId("4-6");
+    const cell4_5 = screen.getByTestId("4-5");
+    expect(cell4_6).toHaveTextContent("blue");
+    expect(cell4_5).toHaveTextContent("blue");
+  });
+  it("doesn't change turns after clicking a full column", () => {
+    render(<FourInARow />);
+    clickCell(0, 0);
+    clickCell(0, 0);
+    clickCell(0, 0);
+    clickCell(0, 0);
+    clickCell(0, 0);
+    clickCell(0, 0);
+    clickCell(0, 0); // This is the superfluous click
+    clickCell(0, 1);
+    const cell5_1 = screen.getByTestId("5-1");
+    expect(cell5_1).toHaveTextContent("red");
+  });
 });
 
 describe("Asks user to play again", () => {

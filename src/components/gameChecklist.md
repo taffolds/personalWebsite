@@ -1,13 +1,13 @@
 Tests:
 [x] Check all winning conditions
-[] Check that piece falls to bottom when clicking top
+[X] Check that piece falls to bottom when clicking top
 [] Rewrite tests for new logic of pieces falling down
 [] Create more robust tests that check all four corners of the board
 [] Check that once a column is filled, it can't be clicked again
 
 Game logic:
-[] Detect all winning conditions
-[] Make pieces fall to bottom of board
+[X] Detect all winning conditions
+[X] Make pieces fall to bottom of board
 
 CSS:
 Make CSS mobile friendly from start!
