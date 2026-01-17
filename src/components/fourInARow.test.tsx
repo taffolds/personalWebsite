@@ -96,6 +96,44 @@ describe("Shows falling diagonal win", () => {
   });
 });
 
+describe("Shows rising diagonal win", () => {
+  it("detects 4 rising diagonals bottom left as a win", () => {
+    render(<FourInARow />);
+    clickCell(5, 0);
+    clickCell(0, 0);
+    clickCell(4, 1);
+    clickCell(0, 1);
+    clickCell(3, 2);
+    clickCell(0, 2);
+    clickCell(2, 3);
+    const winnerMessage = screen.queryByText("Winner is red");
+    expect(winnerMessage).toBeTruthy();
+  });
+
+  it("detects 4 rising diagonals top right as a win", () => {
+    render(<FourInARow />);
+    clickCell(5, 0);
+    clickCell(1, 5);
+    clickCell(4, 0);
+    clickCell(3, 3);
+    clickCell(3, 0);
+    clickCell(0, 6);
+    clickCell(5, 1);
+    clickCell(2, 4);
+    const winnerMessage = screen.getByText("Winner is blue");
+    expect(winnerMessage).toBeTruthy();
+  });
+  it("does not detect 3 rising diagonals as a win", () => {
+    render(<FourInARow />);
+    clickCell(5, 2);
+    clickCell(5, 0);
+    clickCell(4, 3);
+    clickCell(4, 0);
+    clickCell(3, 4);
+    expect(screen.queryByText("Winner is red")).toBeNull();
+  });
+});
+
 describe("Asks user to play again", () => {
   it("returns play again message", () => {
     render(<FourInARow />);
