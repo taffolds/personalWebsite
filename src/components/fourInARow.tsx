@@ -122,6 +122,7 @@ export function FourInARow() {
   const [board, setBoard] = useState<CellValue[][]>(createEmptyGame());
   const [turn, setTurn] = useState<CellValue>("red");
   const [winner, setWinner] = useState<CellValue>(null);
+  const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
 
   useEffect(() => {
     setWinner(checkWinner(board));
@@ -152,6 +153,15 @@ export function FourInARow() {
     setBoard(createEmptyGame());
   }
 
+  function getDropRow(columnIndex: number): number | null {
+    for (let i = board.length - 1; i >= 0; i--) {
+      if (!board[i]![columnIndex]) {
+        return i;
+      }
+    }
+    return null;
+  }
+
   return (
     <>
       <Banner />
@@ -172,20 +182,35 @@ export function FourInARow() {
         </>
       )}
 
-      <table>
+      <table className={styles.board}>
         <tbody>
           {board.map((row, rowIndex) => (
             <tr key={rowIndex}>
-              {row.map((r, columnIndex) => (
-                <td
-                  key={columnIndex}
-                  className={styles.cells}
-                  data-testid={`${rowIndex}-${columnIndex}`}
-                  onClick={() => handleClick(columnIndex)}
-                >
-                  {r || `(${rowIndex}, ${columnIndex})`}
-                </td>
-              ))}
+              {row.map((r, columnIndex) => {
+                const dropRow =
+                  hoveredColumn !== null ? getDropRow(hoveredColumn) : null;
+                const isHoverTarget =
+                  hoveredColumn === columnIndex && dropRow === rowIndex;
+                return (
+                  <td
+                    key={columnIndex}
+                    className={`${styles.cells} ${r ? styles[r] : ""} ${isHoverTarget ? styles.hoverTarget : ""}`}
+                    style={
+                      {
+                        "--drop-distance": `${-rowIndex * 50}px`,
+                      } as React.CSSProperties
+                    }
+                    data-testid={`${rowIndex}-${columnIndex}`}
+                    onClick={() => handleClick(columnIndex)}
+                    onMouseEnter={() =>
+                      !winner && setHoveredColumn(columnIndex)
+                    }
+                    onMouseLeave={() => setHoveredColumn(null)}
+                  >
+                    {r || `(${rowIndex}, ${columnIndex})`}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

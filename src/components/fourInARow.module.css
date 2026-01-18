@@ -1,6 +1,55 @@
+.board {
+  background-color: burlywood;
+  border-spacing: 3px;
+  border-width: 2px;
+  border-style: solid;
+}
+
 .cells {
   height: 50px;
   width: 50px;
   border-style: solid;
+  background-color: white;
   border-color: black;
+  border-radius: 50%;
+  color: transparent;
+}
+
+.red {
+  background-color: orangered;
+  animation-name: pieceFalling;
+  animation-duration: 1s;
+  position: relative;
+}
+
+.blue {
+  background-color: royalblue;
+  animation-name: pieceFalling;
+  animation-duration: 2s;
+  position: relative;
+}
+
+@keyframes pieceFalling {
+  0% {
+    transform: translateY(var(--drop-distance));
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .board {
+    padding: 20px;
+    border-spacing: 6px;
+  }
+
+  .cells {
+    width: 70px;
+    height: 70px;
+  }
+
+  .hoverTarget {
+    background-color: lightgray;
+  }
 }
