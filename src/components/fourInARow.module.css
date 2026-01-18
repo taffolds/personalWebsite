@@ -41,8 +41,9 @@
   height: 100%;
   border-radius: 50%;
   animation-name: pieceFalling;
-  animation-duration: 7500ms;
+  animation-duration: 300ms;
   animation-timing-function: ease-in;
+  box-shadow: inset 0 2px 12px black;
 }
 
 .red {
