@@ -194,11 +194,11 @@ export function FourInARow() {
                 return (
                   <td
                     key={columnIndex}
-                    className={`${styles.cells} ${r ? styles[r] : ""} ${isHoverTarget ? styles.hoverTarget : ""}`}
+                    className={`${styles.cells} ${isHoverTarget ? styles.hoverTarget : ""}`}
                     style={
                       {
-                        "--drop-distance": `${-rowIndex * 50}px`,
-                      } as React.CSSProperties
+                        "--row-index": rowIndex,
+                      } as React.CSSProperties & { "--row-index": number }
                     }
                     data-testid={`${rowIndex}-${columnIndex}`}
                     onClick={() => handleClick(columnIndex)}
@@ -207,7 +207,11 @@ export function FourInARow() {
                     }
                     onMouseLeave={() => setHoveredColumn(null)}
                   >
-                    {r || `(${rowIndex}, ${columnIndex})`}
+                    {r ? (
+                      <div className={styles[r]}></div>
+                    ) : (
+                      `(${rowIndex}, ${columnIndex})`
+                    )}
                   </td>
                 );
               })}
