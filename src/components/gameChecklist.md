@@ -2,7 +2,6 @@ Tests:
 [x] Check all winning conditions
 [X] Check that piece falls to bottom when clicking top
 [] Rewrite tests for new logic of pieces falling down
-[] Create more robust tests that check all four corners of the board
 [] Check that once a column is filled, it can't be clicked again
 
 Game logic:

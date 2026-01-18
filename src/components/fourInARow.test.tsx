@@ -7,31 +7,30 @@ vi.mock("./banner.js", () => ({
   Banner: () => <div>Mocked Banner</div>,
 }));
 
-const clickCell = (row: number, column: number) => {
-  fireEvent.click(screen.getByTestId(`${row}-${column}`));
+const clickColumn = (column: number) => {
+  fireEvent.click(screen.getByTestId(`0-${column}`));
 };
 
 describe("Shows horizontal win", () => {
-  it("detects 4 horizontals as win", () => {
+  it("detects 4 horizontals as win bottom left", () => {
     render(<FourInARow />);
-    clickCell(3, 3);
-    clickCell(0, 0);
-    clickCell(3, 4);
-    clickCell(1, 1);
-    clickCell(3, 5);
-    clickCell(1, 5);
-    clickCell(3, 6);
+    clickColumn(2);
+    clickColumn(2);
+    clickColumn(3);
+    clickColumn(3);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(1);
     const winnerMessage = screen.queryByText("Winner is red");
     expect(winnerMessage).toBeTruthy();
   });
-
   it("does not detect 3 horizontals as win", () => {
     render(<FourInARow />);
-    clickCell(2, 0);
-    clickCell(1, 0);
-    clickCell(2, 1);
-    clickCell(1, 1);
-    clickCell(2, 2);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(1);
+    clickColumn(2);
     expect(screen.queryByText("Winner is red")).toBeNull();
   });
 });
@@ -39,115 +38,98 @@ describe("Shows horizontal win", () => {
 describe("Shows vertical win", () => {
   it("detects 4 verticals as win", () => {
     render(<FourInARow />);
-    clickCell(1, 3);
-    clickCell(0, 0);
-    clickCell(2, 3);
-    clickCell(1, 0);
-    clickCell(3, 3);
-    clickCell(2, 0);
-    clickCell(4, 3);
+    clickColumn(3);
+    clickColumn(0);
+    clickColumn(3);
+    clickColumn(0);
+    clickColumn(3);
+    clickColumn(0);
+    clickColumn(3);
     const winnerMessage = screen.queryByText("Winner is red");
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 verticals as win", () => {
     render(<FourInARow />);
-    clickCell(1, 3);
-    clickCell(0, 0);
-    clickCell(2, 3);
-    clickCell(1, 0);
-    clickCell(3, 3);
+    clickColumn(3);
+    clickColumn(0);
+    clickColumn(3);
+    clickColumn(0);
+    clickColumn(3);
     expect(screen.queryByText("Winner is red")).toBeNull();
   });
 });
 
 describe("Shows falling diagonal win", () => {
-  it("detects 4 falling diagonals in the top left as a win", () => {
+  it("detects 4 falling diagonals as a win", () => {
     render(<FourInARow />);
-    clickCell(0, 0);
-    clickCell(0, 1);
-    clickCell(1, 1);
-    clickCell(1, 2);
-    clickCell(2, 2);
-    clickCell(2, 3);
-    clickCell(3, 3);
+    clickColumn(6);
+    clickColumn(5);
+    clickColumn(5);
+    clickColumn(4);
+    clickColumn(3);
+    clickColumn(4);
+    clickColumn(4);
+    clickColumn(3);
+    clickColumn(0);
+    clickColumn(3);
+    clickColumn(3);
     const winnerMessage = screen.queryByText("Winner is red");
-    expect(winnerMessage).toBeTruthy();
-  });
-  it("detects 4 falling diagonals in the bottom right as a win", () => {
-    render(<FourInARow />);
-    clickCell(0, 0);
-    clickCell(5, 6);
-    clickCell(0, 6);
-    clickCell(3, 4);
-    clickCell(5, 0);
-    clickCell(2, 3);
-    clickCell(4, 0);
-    clickCell(4, 5);
-    const winnerMessage = screen.getByText("Winner is blue");
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 falling diagonals as a win", () => {
     render(<FourInARow />);
-    clickCell(0, 0);
-    clickCell(1, 0);
-    clickCell(1, 1);
-    clickCell(2, 0);
-    clickCell(2, 2);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(2);
+    clickColumn(3);
+    clickColumn(1);
     expect(screen.queryByText("Winner is red")).toBeNull();
   });
 });
 
 describe("Shows rising diagonal win", () => {
-  it("detects 4 rising diagonals bottom left as a win", () => {
+  it("detects 4 rising diagonals as a win", () => {
     render(<FourInARow />);
-    clickCell(5, 0);
-    clickCell(0, 0);
-    clickCell(4, 1);
-    clickCell(0, 1);
-    clickCell(3, 2);
-    clickCell(0, 2);
-    clickCell(2, 3);
-    const winnerMessage = screen.queryByText("Winner is red");
-    expect(winnerMessage).toBeTruthy();
-  });
-
-  it("detects 4 rising diagonals top right as a win", () => {
-    render(<FourInARow />);
-    clickCell(5, 0);
-    clickCell(1, 5);
-    clickCell(4, 0);
-    clickCell(3, 3);
-    clickCell(3, 0);
-    clickCell(0, 6);
-    clickCell(5, 1);
-    clickCell(2, 4);
-    const winnerMessage = screen.getByText("Winner is blue");
+    clickColumn(3);
+    clickColumn(2);
+    clickColumn(4);
+    clickColumn(3);
+    clickColumn(4);
+    clickColumn(4);
+    clickColumn(5);
+    clickColumn(5);
+    clickColumn(5);
+    clickColumn(5);
+    const winnerMessage = screen.queryByText("Winner is blue");
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 rising diagonals as a win", () => {
     render(<FourInARow />);
-    clickCell(5, 2);
-    clickCell(5, 0);
-    clickCell(4, 3);
-    clickCell(4, 0);
-    clickCell(3, 4);
-    expect(screen.queryByText("Winner is red")).toBeNull();
+    clickColumn(3);
+    clickColumn(2);
+    clickColumn(4);
+    clickColumn(3);
+    clickColumn(4);
+    clickColumn(4);
+    expect(screen.queryByText("Winner is blue")).toBeNull();
   });
 });
 
 describe("Makes pieces fall down to closest available cell", () => {
   it("falls all the way down when there's no pieces on the board", () => {
     render(<FourInARow />);
-    clickCell(0, 0);
+    clickColumn(0);
     const bottomLeftCell = screen.getByTestId("5-0");
     expect(bottomLeftCell).toHaveTextContent("red");
   });
   it("falls on top of other piece", () => {
     render(<FourInARow />);
-    clickCell(0, 6);
-    clickCell(0, 6);
-    clickCell(0, 5);
-    clickCell(0, 5);
+    clickColumn(6);
+    clickColumn(6);
+    clickColumn(5);
+    clickColumn(5);
     const cell4_6 = screen.getByTestId("4-6");
     const cell4_5 = screen.getByTestId("4-5");
     expect(cell4_6).toHaveTextContent("blue");
@@ -155,14 +137,14 @@ describe("Makes pieces fall down to closest available cell", () => {
   });
   it("doesn't change turns after clicking a full column", () => {
     render(<FourInARow />);
-    clickCell(0, 0);
-    clickCell(0, 0);
-    clickCell(0, 0);
-    clickCell(0, 0);
-    clickCell(0, 0);
-    clickCell(0, 0);
-    clickCell(0, 0); // This is the superfluous click
-    clickCell(0, 1);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(0); // This is the superfluous click
+    clickColumn(1);
     const cell5_1 = screen.getByTestId("5-1");
     expect(cell5_1).toHaveTextContent("red");
   });
@@ -171,31 +153,45 @@ describe("Makes pieces fall down to closest available cell", () => {
 describe("Asks user to play again", () => {
   it("returns play again message", () => {
     render(<FourInARow />);
-    clickCell(0, 0);
-    clickCell(1, 0);
-    clickCell(0, 1);
-    clickCell(1, 2);
-    clickCell(0, 2);
-    clickCell(1, 3);
-    clickCell(0, 3);
+    clickColumn(0);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(1);
+    clickColumn(2);
+    clickColumn(2);
+    clickColumn(3);
     const gameOverMessage = screen.queryByText("Play again?");
     expect(gameOverMessage).toBeTruthy();
+  });
+  it("resets board after clicking play again", () => {
+    render(<FourInARow />);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(0);
+    const playAgainButton = screen.getByText("Play again?");
+    fireEvent.click(playAgainButton);
+    const cell5_0 = screen.getByTestId("5-0");
+    expect(cell5_0).toHaveTextContent("(5, 0)");
   });
 });
 
 it("prevents user from clicking board after winner is declared", () => {
   render(<FourInARow />);
-  clickCell(0, 0);
-  clickCell(1, 0);
-  clickCell(0, 1);
-  clickCell(1, 2);
-  clickCell(0, 2);
-  clickCell(1, 3);
-  clickCell(0, 3);
+  clickColumn(0);
+  clickColumn(0);
+  clickColumn(1);
+  clickColumn(1);
+  clickColumn(2);
+  clickColumn(2);
+  clickColumn(3);
 
   const blueCountBeforeClick = screen.queryAllByText("blue").length;
 
-  clickCell(1, 3);
+  clickColumn(3);
 
   const blueCountAfterClick = screen.queryAllByText("blue").length;
   expect(blueCountAfterClick).toBe(blueCountBeforeClick);
