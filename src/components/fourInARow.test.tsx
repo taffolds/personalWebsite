@@ -196,3 +196,61 @@ it("prevents user from clicking board after winner is declared", () => {
   const blueCountAfterClick = screen.queryAllByText("blue").length;
   expect(blueCountAfterClick).toBe(blueCountBeforeClick);
 });
+
+describe("Checks draw condition", () => {
+  it("Asks user to play again when draw condition is met", () => {
+    render(<FourInARow />);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(0);
+    clickColumn(1);
+
+    clickColumn(1);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(0);
+    clickColumn(1);
+    clickColumn(0);
+
+    clickColumn(2);
+    clickColumn(3);
+    clickColumn(2);
+    clickColumn(3);
+    clickColumn(2);
+    clickColumn(3);
+
+    clickColumn(3);
+    clickColumn(2);
+    clickColumn(3);
+    clickColumn(2);
+    clickColumn(3);
+    clickColumn(2);
+
+    clickColumn(4);
+    clickColumn(5);
+    clickColumn(4);
+    clickColumn(5);
+    clickColumn(4);
+    clickColumn(5);
+
+    clickColumn(5);
+    clickColumn(4);
+    clickColumn(5);
+    clickColumn(4);
+    clickColumn(5);
+    clickColumn(4);
+
+    clickColumn(6);
+    clickColumn(6);
+    clickColumn(6);
+    clickColumn(6);
+    clickColumn(6);
+    clickColumn(6);
+    const noWinnerMessage = screen.getByText("No winner");
+    const playAgainMessage = screen.getByText("Play again?");
+    expect(noWinnerMessage).toBeTruthy();
+    expect(playAgainMessage).toBeTruthy();
+  });
+});
