@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Banner } from "./banner.js";
-// @ts-ignore
-import "../styles.css";
+import styles from "./fourInARow.module.css";
 
 type CellValue = null | "red" | "blue";
 
@@ -180,7 +179,7 @@ export function FourInARow() {
               {row.map((r, columnIndex) => (
                 <td
                   key={columnIndex}
-                  className="cells"
+                  className={styles.cells}
                   data-testid={`${rowIndex}-${columnIndex}`}
                   onClick={() => handleClick(columnIndex)}
                 >
