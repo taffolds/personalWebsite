@@ -128,6 +128,9 @@ export function FourInARow() {
     setWinner(checkWinner(board));
   }, [board]);
 
+  const isDraw =
+    !winner && board.every((row) => row.every((cell) => cell !== null));
+
   function handleClick(columnIndex: number) {
     if (winner) return;
     setBoard((oldBoard) => {
@@ -154,11 +157,18 @@ export function FourInARow() {
     <>
       <Banner />
       <h1>Four In a Row</h1>
-      {!winner && <p>{turn}'s turn</p>}
+      {!winner || (!isDraw && <p>{turn}'s turn</p>)}
 
       {winner && (
         <>
           <p>Winner is {winner}</p>
+          <p onClick={() => handleNewGame()}>Play again?</p>
+        </>
+      )}
+
+      {isDraw && (
+        <>
+          <p>No winner</p>
           <p onClick={() => handleNewGame()}>Play again?</p>
         </>
       )}
