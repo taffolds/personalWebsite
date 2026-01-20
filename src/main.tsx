@@ -3,12 +3,14 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { FrontPage } from "./components/frontPage.js";
 import { NotFoundPage } from "./components/notFoundPage.js";
 import { FourInARow } from "./components/fourInARow.js";
+import { AboutFourInARow } from "./components/aboutFourInARow.js";
 
 function Application() {
   return (
     <Routes>
       <Route path={"/"} element={<FrontPage />} />
       <Route path={"/fourInARow"} element={<FourInARow />} />
+      <Route path={"/aboutFourInARow"} element={<AboutFourInARow />} />
       <Route path={"*"} element={<NotFoundPage />} />
     </Routes>
   );
