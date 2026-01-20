@@ -1,5 +1,5 @@
 import React from "react";
-import { Banner } from "./banner.js";
+import Banner from "./banner.js";
 
 export function FrontPage() {
   return (

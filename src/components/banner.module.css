@@ -1,0 +1,129 @@
+nav {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  height: 3em;
+  background-color: #c8e6c9;
+  z-index: 1;
+}
+
+.menuToggle {
+  position: relative;
+  top: 0.5em;
+  left: 1em;
+  display: grid;
+  place-content: center;
+  width: 40px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.menuToggle:focus,
+.menuToggle:hover {
+  border: 2px solid #81c784;
+}
+
+.menu {
+  position: relative;
+  width: 30px;
+  height: 3px;
+  border-radius: 2px;
+  background-color: #2e7d32;
+  z-index: 2;
+  transition: background-color 100ms ease-in 150ms;
+}
+
+.menu::before,
+.menu::after {
+  position: absolute;
+  content: "";
+  width: 30px;
+  height: 3px;
+  left: 0;
+  border-radius: 2px;
+  background-color: #2e7d32;
+}
+
+.menu::before {
+  top: -6px;
+  transition: transform 200ms ease-in;
+}
+
+.menu::after {
+  bottom: -6px;
+  transition: transform 200ms ease-in;
+}
+
+.menu.cross {
+  background-color: transparent;
+  transition: none;
+}
+
+.menu.cross::before {
+  top: 0;
+  transform: rotate(-45deg);
+  background-color: #2e7d32;
+}
+
+.menu.cross::after {
+  bottom: 0;
+  transform: rotate(45deg);
+  background-color: #2e7d32;
+}
+
+.menuLinks {
+  position: absolute;
+  top: 5vw;
+  left: 5vw;
+  width: 85vw;
+  margin: 0 auto;
+  padding: 0;
+  padding-top: 1.25em;
+  background-color: #e8f5e9;
+  border: 2px solid #a5d6a7;
+  border-radius: 8px;
+  opacity: 0;
+  transform: scale(0);
+  transform-origin: top left;
+  list-style-type: none;
+  transition:
+    opacity 500ms ease-in,
+    transform 500ms ease-in;
+}
+
+.menuLinks.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+nav a {
+  display: block;
+  padding: 0.25em;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2e7d32;
+  text-decoration: none;
+}
+
+nav a:hover,
+nav a:focus,
+nav a:active {
+  background-color: #c8e6c9;
+  text-decoration: underline;
+}
+
+.active {
+  background-color: #81c784;
+  color: #f1f8e9;
+}
+
+@media (min-width: 768px) {
+  nav a {
+    padding: 0.5em;
+    font-size: 1.25rem;
+  }
+}

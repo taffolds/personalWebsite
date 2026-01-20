@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Banner } from "./banner.js";
+import Banner from "./banner.js";
 import styles from "./fourInARow.module.css";
 
 type CellValue = null | "red" | "blue";
