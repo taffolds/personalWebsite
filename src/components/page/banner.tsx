@@ -1,11 +1,13 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import styles from "./banner.module.css";
+import { useUser } from "../../contexts/UserContext.js";
 
 // https://dev.to/nicm42/closing-a-navigation-menu-in-react-8ad
 // https://github.com/nicm42/The-Newport-Group/blob/main/src/js/components/Nav.js
 
 const Banner = () => {
+  const { profile } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const toggle = () => setIsOpen(!isOpen);
   const hide = () => setIsOpen(false);
@@ -55,7 +57,22 @@ const Banner = () => {
             </NavLink>
           </li>
         ))}
+        {profile && (
+          <li>
+            <a href={"api/user/logout/start"}>Logout</a>
+          </li>
+        )}
       </ul>
+      <div className={styles.userSection}>
+        {!profile ? (
+          <a href={"/api/user/login/start"}>Login</a>
+        ) : (
+          <NavLink to="/profile">
+            {/*Need a better greeting, either username, or something else than email if no email is set*/}
+            Hello, {profile.email}
+          </NavLink>
+        )}
+      </div>
     </nav>
   );
 };

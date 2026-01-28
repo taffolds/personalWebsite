@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx --watch index.ts"
+    "dev": "tsx --watch mainServer.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +16,6 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.7",
-    "hono": "^4.11.3"
+    "hono": "^4.11.7"
   }
 }
