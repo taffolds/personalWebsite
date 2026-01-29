@@ -16,7 +16,7 @@ export const gameStatusEnum = pgEnum("game_status", [
   "forfeited",
 ]);
 
-export const user = pgTable("user", {
+export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   googleId: varchar("google_id", { length: 255 }).notNull().unique(),
   email: varchar("email", { length: 255 }).notNull(),
@@ -25,42 +25,41 @@ export const user = pgTable("user", {
   lastLoginAt: timestamp("last_login_at"),
 });
 
-export const refreshToken = pgTable("refresh_token", {
+export const refreshTokens = pgTable("refresh_tokens", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   token: varchar("token", { length: 500 }).notNull().unique(),
-  expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastUsedAt: timestamp("last_used_at"),
 });
 
-export const blocked = pgTable(
-  "blocked",
+export const blocks = pgTable(
+  "blocks",
   {
     id: serial("id").primaryKey(),
     blocker: integer("blocker")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     blocked: integer("blocked")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [unique("unique_block_pair").on(table.blocker, table.blocked)],
 );
 
-export const friendship = pgTable(
-  "friendship",
+export const friendships = pgTable(
+  "friendships",
   {
     id: serial("id").primaryKey(),
     userId1: integer("user_id_1")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     userId2: integer("user_id_2")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [
@@ -68,19 +67,19 @@ export const friendship = pgTable(
   ],
 );
 
-export const friendRequest = pgTable(
-  "friend_request",
+export const friendRequests = pgTable(
+  "friend_requests",
   {
     id: serial("id").primaryKey(),
     userId1: integer("user_id_1")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     userId2: integer("user_id_2")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     requestedBy: integer("requested_by")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [
@@ -88,19 +87,19 @@ export const friendRequest = pgTable(
   ],
 );
 
-export const gameRequest = pgTable(
-  "game_request",
+export const gameRequests = pgTable(
+  "game_requests",
   {
     id: serial("id").primaryKey(),
     userId1: integer("user_id_1")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     userId2: integer("user_id_2")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     requestedBy: integer("requested_by")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     expiresAt: timestamp("expires_at").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
@@ -115,19 +114,19 @@ type Move = {
   timestamp: string;
 };
 
-export const game = pgTable("game", {
+export const games = pgTable("games", {
   id: serial("id").primaryKey(),
   playerOneId: integer("player_one_id")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   playerTwoId: integer("player_two_id")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   moves: jsonb("moves").$type<Move[]>().notNull().default([]), // come back to this!!
   currentTurn: integer("current_turn")
     .notNull()
-    .references(() => user.id),
-  winnerId: integer("winner_id").references(() => user.id),
+    .references(() => users.id),
+  winnerId: integer("winner_id").references(() => users.id),
   status: gameStatusEnum("status").notNull().default("in_progress"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastMoveAt: timestamp("last_move_at").notNull().defaultNow(),
