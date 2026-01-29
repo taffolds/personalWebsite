@@ -1,7 +1,7 @@
 import React from "react";
 import Banner from "./banner.js";
 
-export function AboutFourInARow() {
+export function AboutDevelopment() {
   return (
     <>
       <Banner />
@@ -22,6 +22,7 @@ export function AboutFourInARow() {
         knowing that if my tests passed, I wouldn't have to manually test the
         game by clicking the board in the browser.
       </p>
+      <p>The next step was fixing</p>
     </>
   );
 }

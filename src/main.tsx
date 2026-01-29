@@ -4,7 +4,7 @@ import { UserProvider } from "./contexts/UserContext.js";
 import { FrontPage } from "./components/page/frontPage.js";
 import { NotFoundPage } from "./components/page/notFoundPage.js";
 import { FourInARow } from "./components/page/fourInARow.js";
-import { AboutFourInARow } from "./components/page/aboutFourInARow.js";
+import { AboutDevelopment } from "./components/page/aboutDevelopment.js";
 import { ProfilePage } from "./components/user/profilePage.js";
 import { LogoutPage } from "./components/user/logoutPage.js";
 
@@ -13,7 +13,7 @@ function Application() {
     <Routes>
       <Route path={"/"} element={<FrontPage />} />
       <Route path={"/fourInARow"} element={<FourInARow />} />
-      <Route path={"/aboutFourInARow"} element={<AboutFourInARow />} />
+      <Route path={"/aboutDevelopment"} element={<AboutDevelopment />} />
       <Route path={"/profile"} element={<ProfilePage />} />
       <Route path={"/logout"} element={<LogoutPage />} />
       <Route path={"*"} element={<NotFoundPage />} />

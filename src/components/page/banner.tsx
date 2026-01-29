@@ -35,7 +35,7 @@ const Banner = () => {
   const navigation = [
     { link: "/", text: "Home" },
     { link: "/fourInARow", text: "Four in a Row" },
-    { link: "/aboutFourInARow", text: "Four in a Row Development" },
+    { link: "/aboutDevelopment", text: "About Development" },
   ];
 
   return (
