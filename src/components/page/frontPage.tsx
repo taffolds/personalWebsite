@@ -15,6 +15,11 @@ export function FrontPage() {
         All source code will be linked on the various pages. (Note to self,
         don't forget to actually do this...)
       </p>
+      <p>
+        Please contact me if you find any bugs or issues! If there are
+        layout/interface problems, do not hesitate to contact me here:
+        thomasltellefsen@gmail.com
+      </p>
     </>
   );
 }
