@@ -3,31 +3,28 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import dotenv from "dotenv";
 import {
   createUser,
-  deleteRefreshToken,
   findUserByGoogleId,
-  getRefreshToken,
-  storeRefreshToken,
-  updateRefreshTokenLastUsedAt,
   updateUserLogin,
 } from "./services/userService.js";
-import { decryptToken, encryptToken } from "./utils/tokens.js";
 import {
-  getDiscoveryDoc,
+  saveRefreshToken,
+  getRefreshToken,
+  updateTokenLastUsed,
+  deleteRefreshToken,
+} from "./services/authService.js";
+import {
   getGoogleUserProfile,
   getTokenFromCode,
   revokeToken,
+  refreshAccessToken,
+  startLogin,
 } from "./services/oauth.js";
 
 dotenv.config();
 
 const userApp = new Hono();
 
-const googleClientId = process.env.GOOGLE_CLIENT_ID;
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const baseUrl = process.env.BASE_URL;
 const frontendUrl = process.env.FRONTEND_URL;
-
-const infiniteRefreshTokens = process.env.INFINITE_REFRESH_TOKENS;
 
 userApp.get("/login/fetchToken", async (c) => {
   const { error_description, code } = c.req.query();
@@ -35,7 +32,6 @@ userApp.get("/login/fetchToken", async (c) => {
   if (!code) return c.text("Error: Code param is missing");
 
   const token = await getTokenFromCode(code);
-
   if (!token.access_token) throw new Error("Error: No access token");
 
   const googleRes = await getGoogleUserProfile(token.access_token);
@@ -49,8 +45,7 @@ userApp.get("/login/fetchToken", async (c) => {
   }
 
   if (token.refresh_token) {
-    const encrypted = encryptToken(token.refresh_token);
-    await storeRefreshToken(user!.id, encrypted);
+    await saveRefreshToken(user!.id, token.refresh_token);
   }
 
   setCookie(c, "token", token.access_token, {
@@ -77,23 +72,7 @@ userApp.get("/login/fetchToken", async (c) => {
 
 // REMEMBER TO LIMIT AMOUNT OF LOGIN ATTEMPTS OVER A TIME PERIOD LATER
 userApp.get("/login/start", async (c) => {
-  const { authorization_endpoint } = await getDiscoveryDoc();
-  if (!googleClientId) return c.text("Error: Missing Google Client ID");
-
-  const params = new URLSearchParams({
-    client_id: googleClientId,
-    redirect_uri: `${baseUrl}/api/user/login/fetchToken`,
-    response_type: "code",
-    scope: "openid email",
-    access_type: "offline",
-  });
-
-  if (infiniteRefreshTokens) {
-    params.append("prompt", infiniteRefreshTokens);
-  }
-
-  const authorizationUri = `${authorization_endpoint}?${params.toString()}`;
-
+  const authorizationUri = await startLogin();
   return c.redirect(authorizationUri);
 });
 
@@ -110,47 +89,20 @@ userApp.get("/profile", async (c) => {
   }
 
   const user = await getGoogleUserProfile(token);
-
   return c.json(user.email);
 });
 
 async function tryTokenRefresh(c: any, userId: number): Promise<string | null> {
-  const encryptedToken = await getRefreshToken(userId);
-  if (!encryptedToken) return null;
+  try {
+    const refreshToken = await getRefreshToken(userId);
+    if (!refreshToken) return null;
 
-  const refreshToken = decryptToken(encryptedToken);
+    const newAccessToken = await refreshAccessToken(refreshToken);
 
-  if (!refreshToken) return null;
-
-  const { token_endpoint } = await getDiscoveryDoc();
-
-  if (!googleClientId) {
-    console.error("Error: Missing client id");
-    return null;
-  }
-  if (!googleClientSecret) {
-    console.error("Error: Missing client secret");
-    return null;
-  }
-
-  const res = await fetch(token_endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: googleClientId,
-      client_secret: googleClientSecret,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
-
-  const data = await res.json();
-
-  if (data.access_token) {
     await updateUserLogin(userId);
-    await updateRefreshTokenLastUsedAt(userId);
+    await updateTokenLastUsed(userId);
 
-    setCookie(c, "token", data.access_token, {
+    setCookie(c, "token", newAccessToken, {
       httpOnly: true,
       secure: true,
       sameSite: "Lax",
@@ -159,10 +111,11 @@ async function tryTokenRefresh(c: any, userId: number): Promise<string | null> {
       path: "/",
     });
 
-    return data.access_token;
+    return newAccessToken;
+  } catch (error) {
+    console.error("Token refresh failed:", error);
+    return null;
   }
-
-  return null;
 }
 
 userApp.get("/logout/start", async (c) => {
