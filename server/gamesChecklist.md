@@ -1,3 +1,9 @@
+What happens if you aren't logged in? Should you be allowed to play
+on your device against someone else on the same device? Or should I say
+you need to log in to play? In any case, there needs to be some kind
+of feedback to user to say if they are playing against a friend
+or they can log in to play people online
+
 [] Only allow one active game per friendship
 [] Games expire after 3 days of no moves
 [] Last to make move is winner

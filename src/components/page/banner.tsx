@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import styles from "./banner.module.css";
 import { useUser } from "../../contexts/UserContext.js";
 
@@ -9,6 +9,8 @@ import { useUser } from "../../contexts/UserContext.js";
 const Banner = () => {
   const { profile } = useUser();
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const isGamePage = location.pathname === "/fourInARow";
   const toggle = () => setIsOpen(!isOpen);
   const hide = () => setIsOpen(false);
   const show = () => setIsOpen(true);
@@ -28,18 +30,34 @@ const Banner = () => {
   const targetRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     if (targetRef.current) {
-      document.body.style.marginTop = targetRef.current.offsetHeight + "px";
+      if (isGamePage) {
+        document.body.style.marginTop = "0px";
+        document.body.style.marginLeft = targetRef.current.offsetHeight + "px";
+      } else {
+        document.body.style.marginLeft = "0px";
+        document.body.style.marginTop = targetRef.current.offsetHeight + "px";
+      }
     }
-  });
+  }, [isGamePage]);
 
   const navigation = [
+    ...(isGamePage
+      ? [
+          profile
+            ? { link: "/profile", text: "Profile" }
+            : { link: "/api/user/login/start", text: "Login" },
+        ]
+      : []),
     { link: "/", text: "Home" },
     { link: "/fourInARow", text: "Four in a Row" },
     { link: "/aboutDevelopment", text: "About Development" },
   ];
 
   return (
-    <nav ref={targetRef}>
+    <nav
+      ref={targetRef}
+      className={`${styles.nav} ${isGamePage ? styles.sidebar : styles.topbar}`}
+    >
       <button className={styles.menuToggle} onClick={toggle}>
         <span className={`${styles.menu} ${isOpen ? styles.cross : ""}`}></span>
       </button>
@@ -63,16 +81,18 @@ const Banner = () => {
           </li>
         )}
       </ul>
-      <div className={styles.userSection}>
-        {!profile ? (
-          <a href={"/api/user/login/start"}>Login</a>
-        ) : (
-          <NavLink to="/profile">
-            {/*Need a better greeting, either username, or something else than email if no email is set*/}
-            Hello, {profile.email}
-          </NavLink>
-        )}
-      </div>
+      {!isGamePage && (
+        <div className={styles.userSection}>
+          {!profile ? (
+            <a href={"/api/user/login/start"}>Login</a>
+          ) : (
+            <NavLink to="/profile">
+              {/*Need a better greeting, either username, or something else than email if no email is set*/}
+              Hello, {profile.email}
+            </NavLink>
+          )}
+        </div>
+      )}
     </nav>
   );
 };

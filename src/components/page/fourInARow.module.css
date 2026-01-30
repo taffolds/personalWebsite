@@ -1,3 +1,7 @@
+.container h1 {
+  text-align: center;
+}
+
 .board {
   background-color: burlywood;
   border-spacing: 3px;
