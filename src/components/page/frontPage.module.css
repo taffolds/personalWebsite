@@ -1,0 +1,47 @@
+.container {
+  padding: 16px;
+  margin: 0 auto;
+  font-family: Bahnschrift, serif;
+}
+
+.section {
+  margin-bottom: 12px;
+}
+
+.section summary {
+  list-style: none;
+}
+
+.container p {
+  text-align: justify;
+  line-height: 1.5;
+  font-size: 1.1rem;
+}
+
+a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+a:visited,
+a:active {
+  text-decoration: underline;
+  color: inherit;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .container p {
+    line-height: 1.7;
+    font-size: 1.7rem;
+  }
+
+  .container h1 {
+    font-size: 5rem;
+    text-align: center;
+  }
+}

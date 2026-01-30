@@ -1,0 +1,42 @@
+.container {
+  padding: 16px;
+  margin: 0 auto;
+  font-family: Bahnschrift, serif;
+}
+
+.section {
+  margin-bottom: 12px;
+  border-bottom: 1px solid #2e7d32;
+}
+
+.section summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.section p {
+  text-align: justify;
+  line-height: 1.5;
+  font-size: 1.1rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: 50px;
+    padding-right: 50px;
+  }
+
+  .section p {
+    line-height: 1.7;
+    font-size: 1.5rem;
+  }
+
+  .container h1 {
+    font-size: 3rem;
+    text-align: center;
+  }
+
+  .container h3 {
+    font-size: 2rem;
+  }
+}

@@ -4,6 +4,8 @@ import userApp from "./userServer.js";
 // remember serveStatic when going to production
 // import { serveStatic } from "@hono/node-server/serve-static";
 
+// https://medium.com/@vivekg312003/understanding-about-orchestration-29a2b6b67fee
+
 import dotenv from "dotenv";
 
 dotenv.config();

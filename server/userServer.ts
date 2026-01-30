@@ -1,16 +1,22 @@
 import { Hono } from "hono";
-import { getCookie, setCookie, deleteCookie } from "hono/cookie";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import dotenv from "dotenv";
 import {
   createUser,
+  deleteRefreshToken,
   findUserByGoogleId,
   getRefreshToken,
   storeRefreshToken,
   updateRefreshTokenLastUsedAt,
   updateUserLogin,
-  deleteRefreshToken,
 } from "./services/userService.js";
-import { encryptToken, decryptToken } from "./utils/tokens.js";
+import { decryptToken, encryptToken } from "./utils/tokens.js";
+import {
+  getDiscoveryDoc,
+  getGoogleUserProfile,
+  getTokenFromCode,
+  revokeToken,
+} from "./services/oauth.js";
 
 dotenv.config();
 
@@ -28,32 +34,11 @@ userApp.get("/login/fetchToken", async (c) => {
   if (error_description) return c.text(error_description);
   if (!code) return c.text("Error: Code param is missing");
 
-  if (!googleClientSecret) return c.text("Error: Client secret missing");
-  if (!googleClientId) return c.text("Error: Client ID is missing");
+  const token = await getTokenFromCode(code);
 
-  const { token_endpoint, userinfo_endpoint } = await getDiscoveryDoc();
+  if (!token.access_token) throw new Error("Error: No access token");
 
-  const res = await fetch(token_endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      code,
-      client_id: googleClientId,
-      grant_type: "authorization_code",
-      client_secret: googleClientSecret,
-      redirect_uri: `${baseUrl}/api/user/login/fetchToken`,
-    }),
-  });
-
-  const responseJson = await res.json();
-  const { access_token, refresh_token } = responseJson;
-  if (!access_token) return c.json(responseJson);
-
-  const userRes = await fetch(userinfo_endpoint, {
-    headers: { Authorization: `Bearer ${access_token}` },
-  });
-
-  const googleRes = await userRes.json();
+  const googleRes = await getGoogleUserProfile(token.access_token);
 
   let user = await findUserByGoogleId(googleRes.sub);
 
@@ -63,12 +48,12 @@ userApp.get("/login/fetchToken", async (c) => {
     await updateUserLogin(user.id);
   }
 
-  if (refresh_token) {
-    const encrypted = encryptToken(refresh_token);
+  if (token.refresh_token) {
+    const encrypted = encryptToken(token.refresh_token);
     await storeRefreshToken(user!.id, encrypted);
   }
 
-  setCookie(c, "token", access_token, {
+  setCookie(c, "token", token.access_token, {
     httpOnly: true,
     secure: true,
     sameSite: "Lax",
@@ -77,7 +62,9 @@ userApp.get("/login/fetchToken", async (c) => {
     path: "/",
   });
 
-  setCookie(c, "user_id", String(user!.id), {
+  if (!user) throw new Error("Failed to persist user");
+
+  setCookie(c, "user_id", String(user.id), {
     httpOnly: true,
     secure: true,
     sameSite: "Lax",
@@ -87,13 +74,6 @@ userApp.get("/login/fetchToken", async (c) => {
 
   return c.redirect(`${frontendUrl}/profile`);
 });
-
-async function getDiscoveryDoc() {
-  const res = await fetch(
-    "https://accounts.google.com/.well-known/openid-configuration",
-  );
-  return await res.json();
-}
 
 // REMEMBER TO LIMIT AMOUNT OF LOGIN ATTEMPTS OVER A TIME PERIOD LATER
 userApp.get("/login/start", async (c) => {
@@ -129,15 +109,9 @@ userApp.get("/profile", async (c) => {
     return c.json(null);
   }
 
-  const { userinfo_endpoint } = await getDiscoveryDoc();
+  const user = await getGoogleUserProfile(token);
 
-  const res = await fetch(userinfo_endpoint, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  const data = await res.json();
-
-  return c.json(data.email);
+  return c.json(user.email);
 });
 
 async function tryTokenRefresh(c: any, userId: number): Promise<string | null> {
@@ -196,17 +170,15 @@ userApp.get("/logout/start", async (c) => {
   const userId = getCookie(c, "user_id");
 
   if (token) {
-    await fetch("https://oauth2.googleapis.com/revoke", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({ token }),
-    });
+    await revokeToken(token).catch((error) =>
+      console.error("Failed to revoke token:", error),
+    );
   }
 
   if (userId) {
-    await deleteRefreshToken(Number(userId));
+    await deleteRefreshToken(Number(userId)).catch((error) =>
+      console.error("Failed to revoke refresh token:", error),
+    );
   }
   deleteCookie(c, "token", { path: "/" });
   deleteCookie(c, "user_id", { path: "/" });
