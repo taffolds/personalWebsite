@@ -8,4 +8,8 @@
 [] Set up cron job for expired game requests
 [] If Alice sends game request to Bob, then Bob sends game request to Alice, automatically start game
 
+[] Display all games a user has participated in, and with whom they had the game
+[] Make front end display without game numbers, but show which players had the game
+[] If numbers, order by dateCreated, and number in for loop/map
+
 [] WebSocket - what a pain this will be...

@@ -18,6 +18,16 @@ export function createApp() {
 
 const app = createApp();
 
+app.onError((e, c) => {
+  return c.json(
+    {
+      success: false,
+      message: "Internal Server Error",
+    },
+    500,
+  );
+});
+
 const port = Number(process.env.PORT) || 3000;
 
 serve({
