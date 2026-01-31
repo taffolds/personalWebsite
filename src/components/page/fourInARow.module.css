@@ -69,6 +69,70 @@
   }
 }
 
+.rotateOverlay {
+  display: none;
+}
+
+.rotateContent p {
+  margin: 10px;
+  font-family: Bahnschrift, serif;
+}
+
+.rotateContent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.rotateIcon {
+  width: 60px;
+  height: 120px;
+  border: 6px solid burlywood;
+  border-top: 6px solid navajowhite;
+  border-radius: 2%;
+  margin-bottom: 40px;
+
+  animation-name: rotate;
+  animation-duration: 2s;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(-90deg);
+  }
+  100% {
+    transform: rotate(-90deg);
+  }
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .rotateOverlay {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 95vw;
+    height: 100vh;
+    background-color: darkslategray;
+    color: white;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .container {
+    display: none;
+  }
+}
+
 @media (min-width: 768px) {
   .board {
     padding: 20px;

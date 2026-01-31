@@ -164,6 +164,12 @@ export function FourInARow() {
 
   return (
     <>
+      <div className={styles.rotateOverlay}>
+        <div className={styles.rotateContent}>
+          <div className={styles.rotateIcon}></div>
+          <p>Please rotate device</p>
+        </div>
+      </div>
       <Banner />
       <div className={styles.container}>
         <h1>Four In a Row</h1>
