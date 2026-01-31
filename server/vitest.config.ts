@@ -6,6 +6,8 @@ export default defineConfig({
     environment: "node",
     setupFiles: ["./test/setup.ts"],
     include: ["test/**/*.test.ts"],
+    pool: "forks",
+    fileParallelism: false, // sad days
     /*
         npx vitest run --coverage
         to see tests with coverage

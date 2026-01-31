@@ -5,24 +5,38 @@ import {
   updateUserLogin,
   getByUserId,
 } from "../../services/userService.js";
+import { createTestUser } from "../helper.js";
 
 // TS complains about user possibly being null, therefore the checks:
 // expect(user).not.toBeNull();
 
 describe("Create user", () => {
   it("Should create new user", async () => {
-    const user = await createUser("testGoogleId", "test@gmail.com");
+    const user = await createTestUser();
 
     expect(user).not.toBeNull();
+    expect(user!.id).toBeGreaterThan(0);
+
     expect(user!.id).toBeDefined();
-    expect(user!.googleId).toBe("testGoogleId");
-    expect(user!.email).toBe("test@gmail.com");
+    expect(user!.googleId).toBeTruthy();
+    expect(user!.email).toContain("@gmail.com");
     expect(user!.nickname).toBeNull();
     expect(user!.createdAt).toBeInstanceOf(Date);
   });
 
+  it("Should create user with hardcoded values", async () => {
+    const gId = "googleId";
+    const gm = "g@m.c";
+
+    const user = await createUser(gId, gm);
+
+    expect(user).not.toBeNull();
+    expect(user!.googleId).toBe(gId);
+    expect(user!.email).toBe(gm);
+  });
+
   it("Should set lastLoginAt when creating new user", async () => {
-    const user = await createUser("testGoogleId", "test@gmail.com");
+    const user = await createTestUser();
 
     expect(user).not.toBeNull();
     expect(user!.lastLoginAt).toBeInstanceOf(Date);
@@ -31,12 +45,14 @@ describe("Create user", () => {
 
 describe("Find user by Google Id", () => {
   it("should find existing user", async () => {
-    await createUser("testGoogleId", "test@gmail.com");
+    const newUser = await createTestUser();
 
-    const user = await findUserByGoogleId("testGoogleId");
+    const persistedUser = await findUserByGoogleId(newUser.googleId);
 
-    expect(user).not.toBeNull();
-    expect(user!.email).toBe("test@gmail.com");
+    expect(persistedUser).not.toBeNull();
+    expect(persistedUser!.id).toBe(newUser.id);
+    expect(persistedUser!.googleId).toBe(newUser.googleId);
+    expect(persistedUser!.email).toBe(newUser.email);
   });
 
   it("Should return null if user !exists", async () => {
@@ -48,7 +64,7 @@ describe("Find user by Google Id", () => {
 
 describe("Updated user login time", () => {
   it("should update lastLoginTimestamp", async () => {
-    const user = await createUser("testGoogleId", "test@gmail.com");
+    const user = await createTestUser();
     expect(user).not.toBeNull();
 
     const originalLoginTime = user!.lastLoginAt;
@@ -65,13 +81,13 @@ describe("Updated user login time", () => {
 
 describe("Get User by Id", () => {
   it("should return user by id", async () => {
-    const newUser = await createUser("testGoogleId", "test@gmail.com");
+    const newUser = await createTestUser();
     expect(newUser).not.toBeNull();
 
     const persistedUser = await getByUserId(newUser!.id);
 
     expect(persistedUser).not.toBeNull();
-    expect(persistedUser!.googleId).toBe("testGoogleId");
+    expect(persistedUser!.googleId).toBe(newUser.googleId);
   });
 
   it("Should return null for invalid id", async () => {

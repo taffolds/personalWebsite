@@ -19,6 +19,7 @@
     "@types/pg": "^8.16.0",
     "@vitest/coverage-v8": "^4.0.18",
     "drizzle-kit": "^0.31.8",
+    "nanoid": "^5.1.6",
     "tsx": "^4.21.0",
     "vitest": "^4.0.18"
   },
