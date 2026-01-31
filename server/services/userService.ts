@@ -1,5 +1,5 @@
 import { db } from "../db/index.js";
-import { users, refreshTokens } from "../db/schema.js";
+import { users } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 
 export async function findUserByGoogleId(googleId: string) {
@@ -37,39 +37,4 @@ export async function getByUserId(userId: number) {
   const [user] = await db.select().from(users).where(eq(users.id, userId));
 
   return user || null;
-}
-
-export async function storeRefreshToken(
-  userId: number,
-  encryptedToken: string,
-) {
-  await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
-
-  await db.insert(refreshTokens).values({
-    userId: userId,
-    token: encryptedToken,
-    createdAt: new Date(),
-  });
-}
-
-export async function getRefreshToken(userId: number) {
-  const [refreshToken] = await db
-    .select()
-    .from(refreshTokens)
-    .where(eq(refreshTokens.userId, userId));
-
-  if (!refreshToken) return null;
-
-  return refreshToken.token || null;
-}
-
-export async function updateRefreshTokenLastUsedAt(userId: number) {
-  await db
-    .update(refreshTokens)
-    .set({ lastUsedAt: new Date() })
-    .where(eq(refreshTokens.userId, userId));
-}
-
-export async function deleteRefreshToken(userId: number) {
-  await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
 }
