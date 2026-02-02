@@ -296,4 +296,98 @@ describe("log out: Get /logout/start", () => {
   });
 });
 
+describe("change nicknames: Patch /nickname", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+  it("should return ok for valid nickname", async () => {
+    const user = await createTestUser();
+
+    vi.spyOn(userService, "updateNickname").mockResolvedValue({
+      success: true,
+    });
+
+    const res = await userApp.request("/nickname", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `user_id=${user.id}`,
+      },
+      body: JSON.stringify({ nickname: "newName" }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(userService.updateNickname).toHaveBeenCalledWith(user.id, "newName");
+  });
+
+  it("should tell the user nickname already taken", async () => {
+    const user = await createTestUser();
+
+    vi.spyOn(userService, "updateNickname").mockResolvedValue({
+      success: false,
+      error: "Nickname taken",
+    });
+
+    const res = await userApp.request("/nickname", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `user_id=${user.id}`,
+      },
+      body: JSON.stringify({ nickname: "taken" }),
+    });
+
+    expect(res.status).toBe(409);
+
+    const errorMessage = await res.json();
+    expect(errorMessage).toContain("Nickname taken");
+  });
+
+  it("should display error too many characters", async () => {
+    const user = await createTestUser();
+
+    vi.spyOn(userService, "updateNickname").mockResolvedValue({
+      success: false,
+      error: "Too many characters",
+    });
+
+    const res = await userApp.request("/nickname", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `user_id=${user.id}`,
+      },
+      body: JSON.stringify({ nickname: "012345678901234567890" }),
+    });
+
+    expect(res.status).toBe(400);
+
+    const errorMessage = await res.json();
+    expect(errorMessage).toContain("Too many characters");
+  });
+
+  it("should display error only char digits", async () => {
+    const user = await createTestUser();
+
+    vi.spyOn(userService, "updateNickname").mockResolvedValue({
+      success: false,
+      error: "Only characters and digits",
+    });
+
+    const res = await userApp.request("/nickname", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `user_id=${user.id}`,
+      },
+      body: JSON.stringify({ nickname: "what?!" }),
+    });
+
+    expect(res.status).toBe(400);
+
+    const errorMessage = await res.json();
+    expect(errorMessage).toBe("Only characters and digits");
+  });
+});
+
 // 204 for Deleted
