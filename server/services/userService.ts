@@ -38,6 +38,26 @@ export async function getUserById(userId: number) {
   return user || null;
 }
 
-export async function updateNickname(userId: number, nickname: string) {
-  return {} as any; // Making typescript stfu for TDD
+export async function updateNickname(userId: number, newNickname: string) {
+  if (newNickname.length > 20)
+    return { success: false, error: "Too many characters" };
+  const existingNickname = await getNickname(newNickname);
+  if (existingNickname) {
+    return { success: false, error: "Nickname taken" };
+  }
+  await db
+    .update(users)
+    .set({ nickname: newNickname })
+    .where(eq(users.id, userId));
+
+  return { success: true };
+}
+
+export async function getNickname(checkName: string): Promise<string | null> {
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.nickname, checkName));
+
+  return user?.nickname ?? null;
 }

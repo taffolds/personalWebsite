@@ -121,7 +121,8 @@ describe("update nickname", () => {
 
     const res = await updateNickname(user2.id, "takenNickname");
 
-    expect(res).toBeNull();
+    expect(res.success).toBe(false);
+    expect(res.error).toContain("Nickname taken");
     // expect(res.body).toBe("Error: Nickname taken");
     // expect(res.status).toBe(409);
   });
@@ -144,7 +145,8 @@ describe("update nickname", () => {
 
     const disallow = await updateNickname(user.id, "012345678901234567890");
 
-    expect(disallow).toBeNull();
+    expect(disallow.success).toBe(false);
+    expect(disallow.error).toContain("Too many characters");
     // expect(disallow.status).toBe(400);
     // expect(disallow.body).toContain("Error: Too many chars");
   });
