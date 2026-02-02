@@ -17,6 +17,11 @@ export function ProfilePage() {
   const [deleteProfilePrompt, setDeleteProfilePrompt] = useState(false);
   const navigate = useNavigate();
 
+  // What happens if you want to remove your nickname?
+  // Disallow it?
+  // Own button?
+  // Button, and also write blank, set to null
+
   useEffect(() => {
     if (!profile && !loading) {
       setTimeout(() => {
