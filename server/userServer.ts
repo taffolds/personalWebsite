@@ -71,6 +71,7 @@ userApp.get("/login/fetchToken", async (c) => {
 });
 
 // REMEMBER TO LIMIT AMOUNT OF LOGIN ATTEMPTS OVER A TIME PERIOD LATER
+// HTTP STATUS 429 Too Many Requests
 userApp.get("/login/start", async (c) => {
   const authorizationUri = await startLogin();
   return c.redirect(authorizationUri);

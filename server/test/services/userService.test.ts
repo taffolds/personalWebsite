@@ -3,7 +3,8 @@ import {
   createUser,
   findUserByGoogleId,
   updateUserLogin,
-  getByUserId,
+  getUserById,
+  updateNickname,
 } from "../../services/userService.js";
 import { createTestUser } from "../helper.js";
 
@@ -73,7 +74,7 @@ describe("Updated user login time", () => {
 
     await updateUserLogin(user!.id);
 
-    const newLogin = await getByUserId(user!.id);
+    const newLogin = await getUserById(user!.id);
     expect(newLogin).not.toBeNull();
     expect(newLogin!.lastLoginAt).not.toEqual(originalLoginTime);
   });
@@ -84,15 +85,67 @@ describe("Get User by Id", () => {
     const newUser = await createTestUser();
     expect(newUser).not.toBeNull();
 
-    const persistedUser = await getByUserId(newUser!.id);
+    const persistedUser = await getUserById(newUser!.id);
 
     expect(persistedUser).not.toBeNull();
     expect(persistedUser!.googleId).toBe(newUser.googleId);
   });
 
   it("Should return null for invalid id", async () => {
-    const hideAndSeekWithGhosts = await getByUserId(1000);
+    const hideAndSeekWithGhosts = await getUserById(1000);
 
     expect(hideAndSeekWithGhosts).toBeNull();
+  });
+});
+
+// should update nickname
+// should only allow char and digit
+// should not allow duplicate
+
+describe("update nickname", () => {
+  it("should update user nickname", async () => {
+    const user = await createTestUser();
+
+    await updateNickname(user.id, "customName");
+
+    const updated = await getUserById(user.id);
+
+    expect(updated!.nickname).toBe("customName");
+  });
+
+  it("should return error if nickname taken", async () => {
+    const user1 = await createTestUser();
+    const user2 = await createTestUser();
+
+    await updateNickname(user1.id, "takenNickname");
+
+    const res = await updateNickname(user2.id, "takenNickname");
+
+    expect(res).toBeNull();
+    expect(res.body).toBe("Error: Nickname taken");
+    expect(res.status).toBe(409);
+  });
+
+  it("should only allow char and digits", async () => {
+    const user1 = await createTestUser();
+    const user2 = await createTestUser();
+
+    const disallow1 = await updateNickname(user1.id, "with spaces");
+    expect(disallow1).toBeNull();
+    expect(disallow1.status).toBe(400);
+
+    const disallow2 = await updateNickname(user2.id, "with?!");
+    expect(disallow2).toBeNull();
+    expect(disallow2.status).toBe(400);
+  });
+
+  it("should tell user limit is 20 chars", async () => {
+    const user = await createTestUser();
+
+    const disallow = await updateNickname(user.id, "012345678901234567890");
+
+    expect(disallow).toBeNull();
+    expect(disallow.status).toBe(400);
+    expect(disallow.body).toContain("Error: Too many chars");
   });
 });

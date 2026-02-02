@@ -32,9 +32,12 @@ export async function updateUserLogin(userId: number) {
     .where(eq(users.id, userId));
 }
 
-// I'm almost certain I'll need this later
-export async function getByUserId(userId: number) {
+export async function getUserById(userId: number) {
   const [user] = await db.select().from(users).where(eq(users.id, userId));
 
   return user || null;
+}
+
+export async function updateNickname(userId: number, nickname: string) {
+  return {} as any; // Making typescript stfu for TDD
 }
