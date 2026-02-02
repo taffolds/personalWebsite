@@ -6,8 +6,6 @@ const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const baseUrl = process.env.BASE_URL;
 
-const infiniteRefreshTokens = process.env.INFINITE_REFRESH_TOKENS;
-
 export async function getDiscoveryDoc() {
   const res = await fetch(
     "https://accounts.google.com/.well-known/openid-configuration",
@@ -29,10 +27,6 @@ export async function startLogin() {
     scope: "openid email",
     access_type: "offline",
   });
-
-  if (infiniteRefreshTokens) {
-    params.append("prompt", "consent");
-  }
 
   return authorization_endpoint + "?" + params.toString();
 }

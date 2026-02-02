@@ -53,7 +53,6 @@ userApp.get("/login/fetchToken", async (c) => {
     secure: true,
     sameSite: "Lax",
     maxAge: 60 * 60,
-    // maxAge: 30, // For the love of Code remember to change this after manual testing
     path: "/",
   });
 
@@ -108,13 +107,15 @@ async function tryTokenRefresh(c: any, userId: number): Promise<string | null> {
       secure: true,
       sameSite: "Lax",
       maxAge: 60 * 60,
-      // maxAge: 30, // And here, don't forget this, or I'll shoot myself in the foot and get a headache
       path: "/",
     });
 
     return newAccessToken;
   } catch (error) {
     console.error("Token refresh failed:", error);
+    await deleteRefreshToken(userId).catch((cleanupError) => {
+      console.error("Failed to delete dead refresh token:", cleanupError);
+    });
     return null;
   }
 }
@@ -131,7 +132,7 @@ userApp.get("/logout/start", async (c) => {
 
   if (userId) {
     await deleteRefreshToken(Number(userId)).catch((error) =>
-      console.error("Failed to revoke refresh token:", error),
+      console.error("Failed to delete refresh token from db:", error),
     );
   }
   deleteCookie(c, "token", { path: "/" });
