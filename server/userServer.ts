@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import {
   createUser,
   findUserByGoogleId,
+  getUserById,
+  updateNickname,
   updateUserLogin,
 } from "./services/userService.js";
 import {
@@ -138,6 +140,42 @@ userApp.get("/logout/start", async (c) => {
   deleteCookie(c, "token", { path: "/" });
   deleteCookie(c, "user_id", { path: "/" });
   return c.redirect(`${frontendUrl}/logout`);
+});
+
+userApp.patch("/nickname", async (c) => {
+  const userId = getCookie(c, "user_id");
+
+  if (!userId) return c.json("Couldn't validate user", 401);
+
+  const user = await getUserById(Number(userId));
+
+  if (!user) {
+    return c.json("User not found", 401);
+  }
+
+  const { nickname } = await c.req.json();
+
+  if (!nickname) {
+    return c.json("Need a nickname", 400);
+  }
+
+  const res = await updateNickname(user!.id, nickname);
+
+  if (res.error) {
+    // consider refactoring this
+    switch (res.error) {
+      case "Nickname taken": // Not the biggest fan of the names either, frontend will require
+        return c.json(res.error, 409); // something a bit more fancy than this anyway
+      case "Too many characters":
+        return c.json(res.error, 400);
+      case "Only characters and digits":
+        return c.json(res.error, 400);
+      default: // Not testing this until I've refactored
+        return c.json("If this pops up who knows", 500);
+    }
+  }
+
+  return c.json("Nickname updated", 200);
 });
 
 export default userApp;

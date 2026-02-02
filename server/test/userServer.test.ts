@@ -343,6 +343,24 @@ describe("change nicknames: Patch /nickname", () => {
     expect(errorMessage).toContain("Nickname taken");
   });
 
+  it("should tell the user off for not entering anything", async () => {
+    const user = await createTestUser();
+
+    const res = await userApp.request("/nickname", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `user_id=${user.id}`,
+      },
+      body: JSON.stringify(""),
+    });
+
+    expect(res.status).toBe(400);
+
+    const errorMessage = await res.json();
+    expect(errorMessage).toContain("Need a nickname");
+  });
+
   it("should display error too many characters", async () => {
     const user = await createTestUser();
 
@@ -387,6 +405,26 @@ describe("change nicknames: Patch /nickname", () => {
 
     const errorMessage = await res.json();
     expect(errorMessage).toBe("Only characters and digits");
+  });
+
+  it("detects some funny business", async () => {
+    // forgot about this in my original TDD, oops
+
+    vi.spyOn(userService, "getUserById").mockResolvedValue(null!);
+
+    const res = await userApp.request("/nickname", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: "user_id=100000",
+      },
+      body: JSON.stringify({ nickname: "intruder" }),
+    });
+
+    expect(res.status).toBe(401);
+
+    const errorMessage = await res.json();
+    expect(errorMessage).toBe("User not found");
   });
 });
 
