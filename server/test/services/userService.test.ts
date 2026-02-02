@@ -132,11 +132,13 @@ describe("update nickname", () => {
     const user2 = await createTestUser();
 
     const disallow1 = await updateNickname(user1.id, "with spaces");
-    expect(disallow1).toBeNull();
+    expect(disallow1.success).toBe(false);
+    expect(disallow1.error).toContain("Only characters and digits");
     // expect(disallow1.status).toBe(400);
 
     const disallow2 = await updateNickname(user2.id, "with?!");
-    expect(disallow2).toBeNull();
+    expect(disallow2.success).toBe(false);
+    expect(disallow2.error).toContain("Only characters and digits");
     // expect(disallow2.status).toBe(400);
   });
 

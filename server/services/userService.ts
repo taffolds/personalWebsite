@@ -39,8 +39,11 @@ export async function getUserById(userId: number) {
 }
 
 export async function updateNickname(userId: number, newNickname: string) {
-  if (newNickname.length > 20)
-    return { success: false, error: "Too many characters" };
+  const sanitiseInput = checkValidity(newNickname);
+  if (!sanitiseInput.match("Success")) {
+    return { success: false, error: sanitiseInput.valueOf() };
+  }
+
   const existingNickname = await getNickname(newNickname);
   if (existingNickname) {
     return { success: false, error: "Nickname taken" };
@@ -51,6 +54,12 @@ export async function updateNickname(userId: number, newNickname: string) {
     .where(eq(users.id, userId));
 
   return { success: true };
+}
+
+function checkValidity(nickname: string): string {
+  if (nickname.length > 20) return "Too many characters";
+  if (!/^[a-zA-z0-9]+$/.test(nickname)) return "Only characters and digits";
+  return "Success";
 }
 
 export async function getNickname(checkName: string): Promise<string | null> {
