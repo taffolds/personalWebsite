@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest",
     "type-check": "tsc --noEmit && prettier --check .",
-    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev": "concurrently -k \"npm run dev:client\" \"npm run dev:server\"",
     "dev:client": "vite",
     "dev:server": "cd server && npm run dev",
     "prepare": "husky"
