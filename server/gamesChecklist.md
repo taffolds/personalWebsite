@@ -17,5 +17,6 @@ or they can log in to play people online
 [] Display all games a user has participated in, and with whom they had the game
 [] Make front end display without game numbers, but show which players had the game
 [] If numbers, order by dateCreated, and number in for loop/map
+[] Delete all associated games when a user requests to have their info deleted
 
 [] WebSocket - what a pain this will be...

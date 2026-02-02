@@ -11,6 +11,7 @@ const Banner = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const isGamePage = location.pathname === "/fourInARow";
+  const isLoginPage = location.pathname === "/login";
   const toggle = () => setIsOpen(!isOpen);
   const hide = () => setIsOpen(false);
   const show = () => setIsOpen(true);
@@ -45,7 +46,7 @@ const Banner = () => {
       ? [
           profile
             ? { link: "/profile", text: "Profile" }
-            : { link: "/api/user/login/start", text: "Login" },
+            : { link: "/login", text: "Login" },
         ]
       : []),
     { link: "/", text: "Home" },
@@ -83,14 +84,16 @@ const Banner = () => {
       </ul>
       {!isGamePage && (
         <div className={styles.userSection}>
-          {!profile ? (
-            <a href={"/api/user/login/start"}>Login</a>
-          ) : (
+          {profile ? (
             <NavLink to="/profile">
               {/*Need a better greeting, either username, or something else than email if no email is set*/}
-              Hello, {profile.email}
+              {/* Another tidbit, how long of a username can I actually display in the banner? Maybe it's
+                      Hello, longUsern...*/}
+              Hello, {}
             </NavLink>
-          )}
+          ) : !isLoginPage ? (
+            <a href={"/login"}>Login</a>
+          ) : null}
         </div>
       )}
     </nav>

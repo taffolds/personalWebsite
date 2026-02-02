@@ -1,5 +1,7 @@
 import { useUser } from "../../contexts/UserContext.js";
 import Banner from "../page/banner.js";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function ProfilePage() {
   // Add debug if not logged in
@@ -12,15 +14,51 @@ export function ProfilePage() {
   // Should have a logout here as well as on the hamburger
 
   const { profile, loading, refreshProfile } = useUser();
+  const [deleteProfilePrompt, setDeleteProfilePrompt] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!profile && !loading) {
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
+    }
+  }, [profile, loading, navigate]);
 
   if (loading) return <p>Loading profile</p>;
 
-  if (!profile) return <p>No profile</p>;
+  if (!profile) return <p>Not logged in, redirecting...</p>;
+
+  function handleOpenUserWarning() {
+    setDeleteProfilePrompt(true);
+  }
+
+  function handleCloseUserWarning() {
+    setDeleteProfilePrompt(false);
+  }
+
+  async function handleDeleteProfile() {
+    alert("Nothing happened"); // Just so I don't forget
+    setDeleteProfilePrompt(false);
+  }
 
   return (
     <>
       <Banner />
       <p>Hello, {profile.email}</p>
+      <p>
+        <button onClick={handleOpenUserWarning}>Delete profile</button>
+      </p>
+      {deleteProfilePrompt && (
+        <>
+          <p>
+            Are you sure you want to delete your profile? All your information
+            will be removed, including game history, friends lists, etc.
+          </p>
+          <button onClick={handleDeleteProfile}>Yes</button>
+          <button onClick={handleCloseUserWarning}>No</button>
+        </>
+      )}
     </>
   );
 }
