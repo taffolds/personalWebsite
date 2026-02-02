@@ -218,4 +218,82 @@ describe("validation stuff: Get /profile", () => {
   });
 });
 
+describe("log out: Get /logout/start", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+  it("should revoke tokens and clear cookies", async () => {
+    const user = await createTestUser();
+    await authService.saveRefreshToken(user.id, "refresh");
+
+    const revokeTokenSpy = vi
+      .spyOn(oauth, "revokeToken")
+      .mockResolvedValue(true);
+    const deleteRefreshSpy = vi
+      .spyOn(authService, "deleteRefreshToken")
+      .mockResolvedValue();
+
+    const res = await userApp.request("/logout/start", {
+      headers: {
+        Cookie: `token=token; user_id=${user.id}`,
+      },
+    });
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toContain("/logout");
+
+    expect(revokeTokenSpy).toHaveBeenCalledWith("token");
+    expect(deleteRefreshSpy).toHaveBeenCalledWith(user.id);
+
+    const cookies = res.headers.get("set-cookie");
+    expect(cookies).toBeTruthy();
+    expect(cookies).toContain("token=");
+    expect(cookies).toContain("user_id=");
+  });
+
+  it("should still logout if revoke returns false", async () => {
+    vi.spyOn(oauth, "revokeToken").mockResolvedValue(false);
+
+    const res = await userApp.request("/logout/start", {
+      headers: {
+        Cookie: "token=invalidToken", // Check this
+      },
+    });
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toContain("/logout");
+  });
+
+  it("should still logout if revoke throws error", async () => {
+    vi.spyOn(oauth, "revokeToken").mockRejectedValue(
+      new Error("Network error"),
+    );
+
+    const res = await userApp.request("/logout/start", {
+      headers: {
+        Cookie: "token=someToken",
+      },
+    });
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toContain("/logout");
+  });
+
+  it("should still logout if deleteRefreshToken fails", async () => {
+    vi.spyOn(oauth, "revokeToken").mockResolvedValue(true);
+    vi.spyOn(authService, "deleteRefreshToken").mockRejectedValue(
+      new Error("DB Error"),
+    );
+
+    const res = await userApp.request("/logout/start", {
+      headers: {
+        Cookie: "token=token; user_id=67",
+      },
+    });
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toContain("/logout");
+  });
+});
+
 // 204 for Deleted
