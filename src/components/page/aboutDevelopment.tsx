@@ -51,6 +51,34 @@ export function AboutDevelopment() {
         </details>
         <details className={styles.section}>
           <summary>
+            <h3>Database</h3>
+          </summary>
+          <p>
+            I did spend some time trying to normalise a database to hold
+            information about a user. I needed to track a few things on my
+            website to make it work. The user is the obvious central entity,
+            with everything connecting to the user entity. I needed to handle
+            refresh tokens, friend requests, which users are friends with each
+            other, and sending friend requests (as well as blocking requests, in
+            case some troll discovers my site and continuously sends requests).
+          </p>
+          <p>
+            I also wanted to be able to view earlier games with friends, so I
+            had to make a table to store games. This also meant tracking the
+            state of the game. For example if Alice and Bob have an active game,
+            I don't want them to be able to request a new game. If they have a
+            game that has been completed, then they need that possibility. I
+            tried go through all these possibilities so that I would only have
+            to make the one schema, and get it right the first time. Knowing
+            what data you are persisting, and why, helps make better endpoints
+            and debug messages to the user later. Now if only I wrote it all
+            down in one place, instead of scattered in word documents, comments
+            in the ER diagram, in my head, etc... Solo projects have their
+            charm.
+          </p>
+        </details>
+        <details className={styles.section}>
+          <summary>
             <h3>Orchestration</h3>
           </summary>
           <p>

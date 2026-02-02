@@ -89,7 +89,7 @@
   width: 60px;
   height: 120px;
   border: 6px solid burlywood;
-  border-top: 6px solid navajowhite;
+  border-top: 6px solid navajowhite; /* Intentional */
   border-radius: 2%;
   margin-bottom: 40px;
 
