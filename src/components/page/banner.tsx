@@ -89,7 +89,7 @@ const Banner = () => {
               {/*Need a better greeting, either username, or something else than email if no email is set*/}
               {/* Another tidbit, how long of a username can I actually display in the banner? Maybe it's
                       Hello, longUsern...*/}
-              Hello, {}
+              Hello, {profile.nickname}
             </NavLink>
           ) : !isLoginPage ? (
             <a href={"/login"}>Login</a>

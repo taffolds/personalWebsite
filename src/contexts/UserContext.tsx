@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface UserContextType {
-  profile: { email: string } | null;
+  profile: { email: string; nickname?: string } | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
 }
@@ -9,7 +9,10 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [profile, setProfile] = useState<{ email: string } | null>(null);
+  const [profile, setProfile] = useState<{
+    email: string;
+    nickname?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function loadUserInfo() {
@@ -17,7 +20,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const user = await res.json();
 
     if (user && !user.error) {
-      setProfile({ email: user.email });
+      setProfile({ email: user.email, nickname: user.nickname || "" });
     } else {
       setProfile(null);
     }

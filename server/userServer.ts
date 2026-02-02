@@ -90,8 +90,12 @@ userApp.get("/profile", async (c) => {
     return c.json(null);
   }
 
-  const user = await getGoogleUserProfile(token);
-  return c.json(user.email);
+  const googleUser = await getGoogleUserProfile(token);
+  const dbUser = await findUserByGoogleId(googleUser.sub);
+  return c.json({
+    email: googleUser.email,
+    nickname: dbUser?.nickname! || null,
+  });
 });
 
 async function tryTokenRefresh(c: any, userId: number): Promise<string | null> {

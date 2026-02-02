@@ -1,6 +1,6 @@
 import { useUser } from "../../contexts/UserContext.js";
 import Banner from "../page/banner.js";
-import { useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function ProfilePage() {
@@ -14,6 +14,7 @@ export function ProfilePage() {
   // Should have a logout here as well as on the hamburger
 
   const { profile, loading, refreshProfile } = useUser();
+  const [newNickname, setNewNickname] = useState("");
   const [deleteProfilePrompt, setDeleteProfilePrompt] = useState(false);
   const navigate = useNavigate();
 
@@ -47,10 +48,38 @@ export function ProfilePage() {
     setDeleteProfilePrompt(false);
   }
 
+  async function handleSaveNickname(event: FormEvent) {
+    event.preventDefault();
+    const res = await fetch("/api/user/nickname", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ nickname: newNickname }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.log("Error:", data.error);
+      return;
+    }
+    await refreshProfile();
+    setNewNickname("");
+  }
+
   return (
     <>
       <Banner />
-      <p>Hello, {profile.email}</p>
+      <p>Hello, {profile.nickname}</p>
+      <form onSubmit={handleSaveNickname}>
+        <input
+          value={newNickname}
+          placeholder="Enter nickname"
+          onChange={(e) => setNewNickname(e.target.value)}
+        />
+        <button>Save</button>
+      </form>
       <p>
         <button onClick={handleOpenUserWarning}>Delete profile</button>
       </p>
