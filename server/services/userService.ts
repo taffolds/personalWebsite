@@ -77,5 +77,5 @@ export async function deleteUser(userId: number) {
     .where(eq(users.id, userId))
     .returning();
 
-  return deletedUser;
+  return deletedUser || null;
 }

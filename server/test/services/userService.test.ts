@@ -164,4 +164,10 @@ describe("delete user", () => {
       email: user.email,
     });
   });
+
+  it("should throw error when deleting non-existent user", async () => {
+    const deleted = await deleteUser(19991999);
+
+    expect(deleted).toBeNull();
+  });
 });
