@@ -22,7 +22,7 @@ describe("login stuff", () => {
     });
   });
   describe("Get /login/fetchToken", () => {
-    it("should return error if code is mssing", async () => {
+    it("should return error if code is missing", async () => {
       const res = await userApp.request("/login/fetchToken");
       expect(res.status).toBe(200);
       const text = await res.text();
@@ -140,7 +140,7 @@ describe("validation stuff: Get /profile", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toBe("meMail@gmail.com");
+    expect(body.email).toBe("meMail@gmail.com");
   });
 
   it("should return null when not authenticated", async () => {
@@ -173,7 +173,7 @@ describe("validation stuff: Get /profile", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toBe(user.email);
+    expect(body.email).toBe(user.email);
 
     expect(updateLoginSpy).toHaveBeenCalledWith(user.id);
     expect(updateTokenSpy).toHaveBeenCalledWith(user.id);
@@ -429,3 +429,39 @@ describe("change nicknames: Patch /nickname", () => {
 });
 
 // 204 for Deleted
+describe("delete user: Delete /", () => {
+  // is this really a separate endpoint? think about it
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+  it("should return ok deleted user", async () => {
+    const user = await createTestUser();
+
+    vi.spyOn(userService, "deleteUser").mockResolvedValue(user);
+
+    const res = await userApp.request("/", {
+      method: "DELETE",
+      headers: {
+        Cookie: `token=token,
+        user_id=${user.id}`,
+      },
+    });
+
+    expect(res.status).toBe(204);
+    expect(userService.deleteUser).toHaveBeenCalledWith(user.id, user.googleId);
+  });
+  it("should detect postman funny business", async () => {
+    const user = await createTestUser();
+
+    const res = await userApp.request("/", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: user.id }),
+    });
+
+    expect(res.status).toBe(401);
+
+    const data = await res.json();
+    expect(data).toBe("Cannot delete other users");
+  });
+});
