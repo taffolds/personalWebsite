@@ -5,6 +5,7 @@ import {
   updateUserLogin,
   getUserById,
   updateNickname,
+  deleteUser,
 } from "../../services/userService.js";
 import { createTestUser } from "../helper.js";
 
@@ -145,5 +146,19 @@ describe("update nickname", () => {
 
     expect(disallow.success).toBe(false);
     expect(disallow.error).toContain("Too many characters");
+  });
+});
+
+// This really needs refactoring as more functionality gets implemented.
+// Need to check every table once I start a new table. So friendships next
+describe("delete user", () => {
+  it("should delete user from users table", async () => {
+    const user = await createTestUser();
+
+    await deleteUser(user.id);
+
+    const res = await getUserById(user.id);
+
+    expect(res).toBe(null);
   });
 });

@@ -70,3 +70,7 @@ export async function getNickname(checkName: string): Promise<string | null> {
 
   return user?.nickname ?? null;
 }
+
+export async function deleteUser(userId: number) {
+  return "TDD";
+}
