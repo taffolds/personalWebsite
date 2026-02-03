@@ -72,5 +72,10 @@ export async function getNickname(checkName: string): Promise<string | null> {
 }
 
 export async function deleteUser(userId: number) {
-  return db.delete(users).where(eq(users.id, userId));
+  const [deletedUser] = await db
+    .delete(users)
+    .where(eq(users.id, userId))
+    .returning();
+
+  return deletedUser;
 }

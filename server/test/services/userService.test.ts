@@ -156,10 +156,12 @@ describe("delete user", () => {
     const user = await createTestUser();
 
     const deleted = await deleteUser(user.id);
-
     const gone = await getUserById(user.id);
 
     expect(gone).toBe(null);
-    expect(deleted.rowCount).toBe(1);
+    expect(deleted).toMatchObject({
+      id: user.id,
+      email: user.email,
+    });
   });
 });
