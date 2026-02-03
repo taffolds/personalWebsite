@@ -1,4 +1,4 @@
-import { createUser } from "../services/userService.js";
+import { createUser, updateNickname } from "../services/userService.js";
 import { nanoid } from "nanoid";
 
 export async function createTestUser(googleId?: string, email?: string) {
@@ -10,4 +10,8 @@ export async function createTestUser(googleId?: string, email?: string) {
   );
   if (!user) throw new Error("Failed to create test user");
   return user;
+}
+
+export async function setNicknameTestUser(userId: number, nickname: string) {
+  await updateNickname(userId, nickname);
 }

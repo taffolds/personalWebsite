@@ -10,17 +10,34 @@ import {
   confirmFriendship,
   declineFriendRequest,
 } from "../../services/friendshipService.js";
-import { createTestUser } from "../helper.js";
+import { createTestUser, setNicknameTestUser } from "../helper.js";
 import { describe, it, expect } from "vitest";
 
 describe("Send friend requests", () => {
   it("should send a friend request", async () => {
     const sender = await createTestUser();
     const receiver = await createTestUser();
+    await setNicknameTestUser(receiver.id, "bob");
 
-    const friendRequest = await sendFriendRequest(sender.id, receiver.id);
+    const friendRequest = await sendFriendRequest(sender.id, "bob");
 
     expect(friendRequest).not.toBeNull();
+    expect(friendRequest!.userId1).toBe(sender.id);
+    expect(friendRequest!.userId2).toBe(receiver.id);
+  });
+
+  it("should prevent duplicate friend requests", async () => {
+    const sender = await createTestUser();
+    const receiver = await createTestUser();
+
+    await setNicknameTestUser(sender.id, "Kelly");
+    await setNicknameTestUser(receiver.id, "Polly");
+
+    const friendRequest = await sendFriendRequest(sender.id, "Polly");
+    expect(friendRequest).not.toBeNull();
+
+    const duplicateRequest = await sendFriendRequest(receiver.id, "Kelly");
+    expect(duplicateRequest).toBeNull();
   });
 });
 
@@ -28,8 +45,9 @@ describe("Accept friend requests", () => {
   it("should accept friend request", async () => {
     const receiver = await createTestUser();
     const sender = await createTestUser(); // on purpose on bottom
+    receiver.nickname = "john";
 
-    const friendRequest = await sendFriendRequest(sender.id, receiver.id);
+    const friendRequest = await sendFriendRequest(sender.id, receiver.nickname);
     expect(friendRequest).not.toBeNull();
     const friendship = await confirmFriendship(sender.id, receiver.id);
     expect(friendship).not.toBeNull();
@@ -55,8 +73,9 @@ describe("Decline friend requests", () => {
   it("should decline friend requests", async () => {
     const user1 = await createTestUser();
     const user2 = await createTestUser();
+    user2.nickname = "sally";
 
-    const friendRequest = await sendFriendRequest(user1.id, user2.id);
+    const friendRequest = await sendFriendRequest(user1.id, user2.nickname);
     expect(friendRequest).not.toBeNull();
     await declineFriendRequest(user1.id, user2.id);
     const requests = await showAllFriendRequests(user1.id);
@@ -69,9 +88,11 @@ describe("Find friend requests", () => {
     const user = await createTestUser();
     const friend1 = await createTestUser();
     const friend2 = await createTestUser();
+    friend1.nickname = "sara";
+    friend2.nickname = "alex";
 
-    await sendFriendRequest(user.id, friend1.id);
-    await sendFriendRequest(user.id, friend2.id);
+    await sendFriendRequest(user.id, friend1.nickname);
+    await sendFriendRequest(user.id, friend2.nickname);
 
     const friendRequests = await showAllFriendRequests(user.id);
 
