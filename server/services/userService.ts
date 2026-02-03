@@ -72,5 +72,5 @@ export async function getNickname(checkName: string): Promise<string | null> {
 }
 
 export async function deleteUser(userId: number) {
-  return "TDD";
+  return db.delete(users).where(eq(users.id, userId));
 }

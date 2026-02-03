@@ -155,10 +155,11 @@ describe("delete user", () => {
   it("should delete user from users table", async () => {
     const user = await createTestUser();
 
-    await deleteUser(user.id);
+    const deleted = await deleteUser(user.id);
 
-    const res = await getUserById(user.id);
+    const gone = await getUserById(user.id);
 
-    expect(res).toBe(null);
+    expect(gone).toBe(null);
+    expect(deleted.rowCount).toBe(1);
   });
 });
