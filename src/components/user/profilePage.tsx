@@ -16,6 +16,7 @@ export function ProfilePage() {
   const { profile, loading, refreshProfile } = useUser();
   const [newNickname, setNewNickname] = useState("");
   const [deleteProfilePrompt, setDeleteProfilePrompt] = useState(false);
+  const [isDeletingProfile, setIsDeletingProfile] = useState(false);
   const navigate = useNavigate();
 
   // What happens if you want to remove your nickname?
@@ -24,7 +25,7 @@ export function ProfilePage() {
   // Button, and also write blank, set to null
 
   useEffect(() => {
-    if (!profile && !loading) {
+    if (!profile && !loading && !isDeletingProfile) {
       setTimeout(() => {
         navigate("/login");
       }, 1000);
@@ -44,8 +45,20 @@ export function ProfilePage() {
   }
 
   async function handleDeleteProfile() {
-    alert("Nothing happened"); // Just so I don't forget
+    const res = await fetch("/api/user", {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      alert("Failed to delete profile");
+      return;
+    }
+
     setDeleteProfilePrompt(false);
+    setIsDeletingProfile(true);
+
+    await refreshProfile();
+    navigate("/deleted");
   }
 
   async function handleSaveNickname(event: FormEvent) {
@@ -93,6 +106,22 @@ export function ProfilePage() {
           <button onClick={handleCloseUserWarning}>No</button>
         </>
       )}
+      <div>
+        <h3>Friends:</h3>
+        <p>Do some ternary here too</p>
+        <ul>
+          <li>map friends here later</li>
+        </ul>
+      </div>
+      <div>
+        <div>friend Get /friendRequests</div>
+        <h3>Some pseudo Friend requests:</h3>
+        <p>noFriendrequests ?</p>
+        <p>friendRequests && show</p>
+        <ul>
+          <li>requests here</li>
+        </ul>
+      </div>
     </>
   );
 }
