@@ -7,6 +7,7 @@ import {
   getUserById,
   updateNickname,
   updateUserLogin,
+  deleteUser,
 } from "./services/userService.js";
 import {
   saveRefreshToken,
@@ -180,6 +181,29 @@ userApp.patch("/nickname", async (c) => {
   }
 
   return c.json("Nickname updated", 200);
+});
+
+userApp.delete("/", async (c) => {
+  const userId = getCookie(c, "user_id");
+
+  if (!userId) return c.json("Cannot delete other users", 401);
+
+  const user = await getUserById(Number(userId));
+
+  if (!user) {
+    return c.json("Cannot delete other users", 401);
+  }
+
+  const deletedUser = await deleteUser(user.id);
+
+  if (!deletedUser) {
+    return c.json("User not found", 404);
+  }
+
+  deleteCookie(c, "token", { path: "/" });
+  deleteCookie(c, "user_id", { path: "/" });
+
+  return c.body(null, 204);
 });
 
 export default userApp;

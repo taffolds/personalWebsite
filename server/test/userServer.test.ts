@@ -442,13 +442,12 @@ describe("delete user: Delete /", () => {
     const res = await userApp.request("/", {
       method: "DELETE",
       headers: {
-        Cookie: `token=token,
-        user_id=${user.id}`,
+        Cookie: `token=token; user_id=${user.id}`,
       },
     });
 
     expect(res.status).toBe(204);
-    expect(userService.deleteUser).toHaveBeenCalledWith(user.id, user.googleId);
+    expect(userService.deleteUser).toHaveBeenCalledWith(user.id);
   });
   it("should detect postman funny business", async () => {
     const user = await createTestUser();
