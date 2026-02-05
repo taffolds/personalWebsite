@@ -70,6 +70,10 @@ export async function findUserByNickname(nickname: string) {
   // And remember this wasn't a part of TDD
 }
 
+// Maybe there are two checks, one to find the complete user in backend, and one that selects all users, and only sends username to frontend
+// https://orm.drizzle.team/docs/rqb-v2#relations-filters
+// nickname LIKE "%param%"
+
 export async function confirmFriendship(
   user1: number,
   user2: number,
@@ -82,8 +86,8 @@ export async function confirmFriendship(
 
   if (!existingRequest) return null;
 
-  try {
-    const [createdFriendship] = await db
+  const res = await db.transaction(async (tx) => {
+    const newFriendship = await tx
       .insert(friendships)
       .values({
         userId1: id1,
@@ -92,15 +96,12 @@ export async function confirmFriendship(
       })
       .returning();
 
-    await removeFriendRequest(id1, id2);
+    await removeFriendRequest(id1, id2, tx);
 
-    // Figure out transactional
+    return newFriendship[0] ?? null;
+  });
 
-    return createdFriendship ?? null;
-  } catch (error) {
-    console.error("Failed to create friendship: ", error);
-    throw error;
-  }
+  return res;
 }
 
 async function checkRequestExists(
@@ -120,13 +121,17 @@ async function checkRequestExists(
   }
 }
 
-export async function removeFriendRequest(user1: number, user2: number) {
+export async function removeFriendRequest(
+  user1: number,
+  user2: number,
+  client: any = db,
+) {
   const ids = [user1, user2].sort((a, b) => a - b);
   const id1 = ids[0] as number;
   const id2 = ids[1] as number;
 
   try {
-    await db
+    await client
       .delete(friendRequests)
       .where(
         and(eq(friendRequests.userId1, id1), eq(friendRequests.userId2, id2)),
