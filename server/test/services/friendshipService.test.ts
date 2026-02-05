@@ -130,8 +130,8 @@ describe("Show outgoing requests", () => {
     const outgoingRequests = await showPendingRequests(sender.id);
 
     expect(outgoingRequests).toHaveLength(2);
-    expect(outgoingRequests[0].userId1).toBe(receiver1.id);
-    expect(outgoingRequests[1].userId2).toBe(receiver2.id); // Given the order they are created
+    expect(outgoingRequests[0]).toBe("Jack");
+    expect(outgoingRequests[1]).toBe("Jill"); // Given the order they are created
     // Or should this be alphabetical?
   });
 
@@ -141,12 +141,14 @@ describe("Show outgoing requests", () => {
     const receiver = await createTestUser();
 
     await setNicknameTestUser(receiver.id, "James");
+    await sendFriendRequest(sender.id, "James");
 
-    const outgoingRequests = await showPendingRequests(sender.id);
-    expect(outgoingRequests).toHaveLength(1);
+    const outgoingRequestsBefore = await showPendingRequests(sender.id);
+    expect(outgoingRequestsBefore).toHaveLength(1);
 
     await removeFriendRequest(sender.id, receiver.id);
-    expect(outgoingRequests).toHaveLength(0);
+    const outgoingRequestsAfter = await showPendingRequests(sender.id);
+    expect(outgoingRequestsAfter).toHaveLength(0);
   });
 });
 
@@ -157,7 +159,7 @@ describe("Search for friends", () => {
 
     const searchResults = await searchForUsers("Jane");
     expect(searchResults).toHaveLength(1);
-    expect(searchResults[0]).toBe(user.nickname);
+    expect(searchResults[0]).toBe("Jane");
   });
 
   it("should only display people within search params", async () => {
@@ -170,7 +172,7 @@ describe("Search for friends", () => {
 
     const searchResults = await searchForUsers("Jen");
     expect(searchResults).toHaveLength(1);
-    expect(searchResults[0]).toBe(user1.nickname);
+    expect(searchResults[0]).toBe("Jen");
   });
 
   it("should display all users containing 'ha'", async () => {
@@ -187,9 +189,9 @@ describe("Search for friends", () => {
     const searchResults = await searchForUsers("hA");
     // return search alphabetically
     expect(searchResults).toHaveLength(3);
-    expect(searchResults[0]).toBe(user2.nickname);
-    expect(searchResults[1]).toBe(user3.nickname);
-    expect(searchResults[2]).toBe(user1.nickname); // checking ordering working, lowest id, but alphabetically last
+    expect(searchResults[0]).toBe("Hank");
+    expect(searchResults[1]).toBe("haNNa");
+    expect(searchResults[2]).toBe("SHaNe"); // checking ordering working, lowest id, but alphabetically last
   });
 });
 

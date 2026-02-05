@@ -1,6 +1,7 @@
 import { db } from "../db/index.js";
 import { friendRequests, friendships, users } from "../db/schema.js";
-import { eq, and, ne, or } from "drizzle-orm";
+import { eq, and, ne, or, ilike, asc, sql } from "drizzle-orm";
+import { checkValidity } from "../utils/inputValidation.js";
 
 let stopHidingMyShitTypeScript;
 let imTryingToRememberMyThoughts;
@@ -160,18 +161,60 @@ export async function showAllFriendRequests(
   return requests;
 }
 
+// magical "sql" operator, thanks drizzle
 export async function showPendingRequests(userId: number) {
-  return null as any;
+  const friendId = sql<number>`CASE WHEN ${friendRequests.userId1} = ${userId} THEN ${friendRequests.userId2} ELSE ${friendRequests.userId1} END`;
+
+  const pendingRequests = await db
+    .select({ nickname: users.nickname })
+    .from(friendRequests)
+    .innerJoin(users, eq(friendId, users.id))
+    .where(eq(friendRequests.requestedBy, userId))
+    .orderBy(asc(users.nickname));
+
+  return pendingRequests.map((r) => r.nickname);
 }
 
 export async function searchForUsers(nickname: string) {
-  return null as any;
+  const sanitised = checkValidity(nickname);
+  if (sanitised !== "Success") throw Error(sanitised);
+
+  const res = await db
+    .select()
+    .from(users)
+    .where(ilike(users.nickname, `%${nickname}%`))
+    .orderBy(asc(users.nickname));
+
+  return res.map((r) => r.nickname);
 }
 
 export async function displayAllFriends(userId: number) {
-  return null as any;
+  const friendId = sql<number>`CASE WHEN ${friendships.userId1} = ${userId} THEN ${friendships.userId2} ELSE ${friendships.userId1} END`;
+
+  const res = await db
+    .select({
+      nickname: users.nickname,
+    })
+    .from(friendships)
+    .innerJoin(users, eq(friendId, users.id))
+    .where(or(eq(friendships.userId1, userId), eq(friendships.userId2, userId)))
+    .orderBy(asc(users.nickname));
+
+  return res.map((r) => r.nickname);
 }
 
 export async function removeFriendship(user1: number, user2: number) {
-  return null as any;
+  const ids = [user1, user2].sort((a, b) => a - b);
+  const id1 = ids[0] as number;
+  const id2 = ids[1] as number; // stfu TypeScript... what would it be
+  // id as banana? Cut me a break...
+
+  try {
+    await db
+      .delete(friendships)
+      .where(and(eq(friendships.userId1, id1), eq(friendships.userId2, id2)));
+  } catch (error) {
+    console.error("Failed to remove friend: ", error);
+    throw error;
+  }
 }

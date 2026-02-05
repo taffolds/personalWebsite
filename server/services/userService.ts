@@ -1,6 +1,7 @@
 import { db } from "../db/index.js";
 import { users } from "../db/schema.js";
 import { eq } from "drizzle-orm";
+import { checkValidity } from "../utils/inputValidation.js";
 
 export async function findUserByGoogleId(googleId: string) {
   const [user] = await db
@@ -55,13 +56,13 @@ export async function updateNickname(userId: number, newNickname: string) {
 
   return { success: true };
 }
-
+/*
 function checkValidity(nickname: string): string {
   if (nickname.length > 20) return "Too many characters";
   if (!/^[a-zA-z0-9]+$/.test(nickname)) return "Only characters and digits";
   return "Success";
 }
-
+*/
 export async function getNickname(checkName: string): Promise<string | null> {
   const [user] = await db
     .select()
