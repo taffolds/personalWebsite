@@ -159,3 +159,19 @@ export async function showAllFriendRequests(
     );
   return requests;
 }
+
+export async function showPendingRequests(userId: number) {
+  return null as any;
+}
+
+export async function searchForUsers(nickname: string) {
+  return null as any;
+}
+
+export async function displayAllFriends(userId: number) {
+  return null as any;
+}
+
+export async function removeFriendship(user1: number, user2: number) {
+  return null as any;
+}
