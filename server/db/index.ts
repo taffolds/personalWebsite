@@ -4,10 +4,16 @@ const { Pool } = pkg;
 import dotenv from "dotenv";
 import * as schema from "./schema.js";
 
-dotenv.config();
+if (process.env.NODE_ENV === "test") {
+  dotenv.config({ path: ".env.test" });
+} else {
+  dotenv.config({ path: ".env" });
+}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
 export const db = drizzle(pool, { schema });
+
+console.log("DB: " + process.env.DATABASE_URL);
