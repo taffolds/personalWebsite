@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import dotenv from "dotenv";
 import {
   createUser,
@@ -10,16 +10,8 @@ import {
   deleteUser,
 } from "./services/userService.js";
 import {
-  saveRefreshToken,
-  getRefreshToken,
-  updateTokenLastUsed,
-  deleteRefreshToken,
-} from "./services/authService.js";
-import {
   getGoogleUserProfile,
   getTokenFromCode,
-  revokeToken,
-  refreshAccessToken,
   startLogin,
 } from "./services/oauth.js";
 
@@ -28,6 +20,11 @@ dotenv.config();
 const userApp = new Hono();
 
 const frontendUrl = process.env.FRONTEND_URL;
+const cookieSecret = process.env.COOKIE_SECRET!;
+
+if (!cookieSecret) {
+  throw new Error("No Cookie Secret");
+}
 
 userApp.get("/login/fetchToken", async (c) => {
   const { error_description, code } = c.req.query();
@@ -47,21 +44,9 @@ userApp.get("/login/fetchToken", async (c) => {
     await updateUserLogin(user.id);
   }
 
-  if (token.refresh_token) {
-    await saveRefreshToken(user!.id, token.refresh_token);
-  }
-
-  setCookie(c, "token", token.access_token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Lax",
-    maxAge: 60 * 60,
-    path: "/",
-  });
-
   if (!user) throw new Error("Failed to persist user");
 
-  setCookie(c, "user_id", String(user.id), {
+  await setSignedCookie(c, "user_id", String(user.id), cookieSecret, {
     httpOnly: true,
     secure: true,
     sameSite: "Lax",
@@ -80,75 +65,27 @@ userApp.get("/login/start", async (c) => {
 });
 
 userApp.get("/profile", async (c) => {
-  let token: string | null = getCookie(c, "token") ?? null;
-  const userId = getCookie(c, "user_id");
+  const userId = await getSignedCookie(c, cookieSecret, "user_id");
 
-  if (!token && userId) {
-    token = await tryTokenRefresh(c, Number(userId));
-  }
+  if (!userId) return c.json(null);
 
-  if (!token) {
-    return c.json(null);
-  }
+  const user = await getUserById(Number(userId));
 
-  const googleUser = await getGoogleUserProfile(token);
-  const dbUser = await findUserByGoogleId(googleUser.sub);
+  if (!user) return c.json(null);
+
   return c.json({
-    email: googleUser.email,
-    nickname: dbUser?.nickname! || null,
+    email: user.email,
+    nickname: user.nickname || null,
   });
 });
 
-async function tryTokenRefresh(c: any, userId: number): Promise<string | null> {
-  try {
-    const refreshToken = await getRefreshToken(userId);
-    if (!refreshToken) return null;
-
-    const newAccessToken = await refreshAccessToken(refreshToken);
-
-    await updateUserLogin(userId);
-    await updateTokenLastUsed(userId);
-
-    setCookie(c, "token", newAccessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "Lax",
-      maxAge: 60 * 60,
-      path: "/",
-    });
-
-    return newAccessToken;
-  } catch (error) {
-    console.error("Token refresh failed:", error);
-    await deleteRefreshToken(userId).catch((cleanupError) => {
-      console.error("Failed to delete dead refresh token:", cleanupError);
-    });
-    return null;
-  }
-}
-
 userApp.get("/logout/start", async (c) => {
-  const token = getCookie(c, "token");
-  const userId = getCookie(c, "user_id");
-
-  if (token) {
-    await revokeToken(token).catch((error) =>
-      console.error("Failed to revoke token:", error),
-    );
-  }
-
-  if (userId) {
-    await deleteRefreshToken(Number(userId)).catch((error) =>
-      console.error("Failed to delete refresh token from db:", error),
-    );
-  }
-  deleteCookie(c, "token", { path: "/" });
   deleteCookie(c, "user_id", { path: "/" });
   return c.redirect(`${frontendUrl}/logout`);
 });
 
 userApp.patch("/nickname", async (c) => {
-  const userId = getCookie(c, "user_id");
+  const userId = await getSignedCookie(c, cookieSecret, "user_id");
 
   if (!userId) return c.json("Couldn't validate user", 401);
 
@@ -184,7 +121,7 @@ userApp.patch("/nickname", async (c) => {
 });
 
 userApp.delete("/", async (c) => {
-  const userId = getCookie(c, "user_id");
+  const userId = await getSignedCookie(c, "user_id");
 
   if (!userId) return c.json("Cannot delete other users", 401);
 

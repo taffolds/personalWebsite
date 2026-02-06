@@ -2,9 +2,18 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import userApp from "../userServer.js";
 import * as oauth from "../services/oauth.js";
 import * as userService from "../services/userService.js";
-import * as authService from "../services/authService.js";
 import { findUserByGoogleId } from "../services/userService.js";
-import { createTestUser } from "./helper.js";
+import { createTestUser, setNicknameTestUser } from "./helper.js";
+
+vi.mock("hono/cookie", async () => {
+  const actual = await vi.importActual("hono/cookie");
+  return {
+    ...actual,
+    getSignedCookie: vi.fn(),
+  };
+});
+
+import { getSignedCookie } from "hono/cookie";
 
 describe("login stuff", () => {
   afterEach(() => {
@@ -95,29 +104,8 @@ describe("login stuff", () => {
       const res = await userApp.request("/login/fetchToken?code=bbb");
 
       const cookies = res.headers.get("set-cookie");
-      expect(cookies).toContain("token=");
       expect(cookies).toContain("user_id=");
       expect(cookies).toContain("HttpOnly; Secure");
-    });
-    it("should save refresh token", async () => {
-      vi.spyOn(oauth, "getTokenFromCode").mockResolvedValue({
-        access_token: "token",
-        refresh_token: "refresh",
-      });
-
-      vi.spyOn(oauth, "getGoogleUserProfile").mockResolvedValue({
-        sub: "googleId",
-        email: "someone@gmail.com",
-      });
-
-      const saveRefreshSpy = vi.spyOn(authService, "saveRefreshToken");
-
-      await userApp.request("/login/fetchToken?code=ccc");
-
-      expect(saveRefreshSpy).toHaveBeenCalledWith(
-        expect.any(Number),
-        "refresh",
-      );
     });
   });
 });
@@ -127,90 +115,21 @@ describe("validation stuff: Get /profile", () => {
     vi.restoreAllMocks();
   });
   it("should return user email when authenticated", async () => {
-    vi.spyOn(oauth, "getGoogleUserProfile").mockResolvedValue({
-      sub: "meId",
-      email: "meMail@gmail.com",
-    });
+    const user = await createTestUser("fakeId", "meMail@gmail.com");
+    await setNicknameTestUser(user.id, "mrRandom");
 
-    const res = await userApp.request("/profile", {
-      headers: {
-        Cookie: "token=valid_access_token",
-      },
-    });
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.email).toBe("meMail@gmail.com");
-  });
-
-  it("should return null when not authenticated", async () => {
     const res = await userApp.request("/profile");
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toBeNull();
+    expect(body.email).toBe("meMail@gmail.com");
+    expect(body.nickname).toBe("mrRandom");
   });
 
-  it("should refresh token if user exists from before", async () => {
-    const user = await createTestUser();
-    await authService.saveRefreshToken(user.id, "refresh");
-
-    vi.spyOn(authService, "getRefreshToken").mockResolvedValue("refresh");
-    vi.spyOn(oauth, "refreshAccessToken").mockResolvedValue("token");
-    vi.spyOn(oauth, "getGoogleUserProfile").mockResolvedValue({
-      sub: user.googleId,
-      email: user.email,
-    });
-
-    const updateLoginSpy = vi.spyOn(userService, "updateUserLogin");
-    const updateTokenSpy = vi.spyOn(authService, "updateTokenLastUsed");
-
-    const res = await userApp.request("/profile", {
-      headers: {
-        Cookie: `user_id=${user.id}`,
-      },
-    });
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.email).toBe(user.email);
-
-    expect(updateLoginSpy).toHaveBeenCalledWith(user.id);
-    expect(updateTokenSpy).toHaveBeenCalledWith(user.id);
-
-    const cookies = res.headers.get("set-cookie");
-    expect(cookies).toContain("token=token"); // Is it unclear keeping earlier naming convention?...
-  });
-
-  it("should return null if refresh token is missing", async () => {
-    const user = await createTestUser();
-    vi.spyOn(authService, "getRefreshToken").mockResolvedValue(null);
-
-    const res = await userApp.request("/profile", {
-      headers: {
-        Cookie: `user_id=${user.id}`,
-      },
-    });
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body).toBeNull();
-  });
-
-  it("should return null if token refresh fails", async () => {
-    const user = await createTestUser();
-    await authService.saveRefreshToken(user.id, "failureToken");
-
-    vi.spyOn(authService, "getRefreshToken").mockResolvedValue("failureToken");
-    vi.spyOn(oauth, "refreshAccessToken").mockRejectedValue(
-      new Error("Invalid refresh token"),
-    );
-
-    const res = await userApp.request("/profile", {
-      headers: {
-        Cookie: `user_id${user.id}`,
-      },
-    });
+  it("should return null when not authenticated", async () => {
+    const res = await userApp.request("/profile");
 
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -222,77 +141,19 @@ describe("log out: Get /logout/start", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
-  it("should revoke tokens and clear cookies", async () => {
+  it("should clear cookie and redirect", async () => {
     const user = await createTestUser();
-    await authService.saveRefreshToken(user.id, "refresh");
 
-    const revokeTokenSpy = vi
-      .spyOn(oauth, "revokeToken")
-      .mockResolvedValue(true);
-    const deleteRefreshSpy = vi
-      .spyOn(authService, "deleteRefreshToken")
-      .mockResolvedValue();
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const res = await userApp.request("/logout/start", {
-      headers: {
-        Cookie: `token=token; user_id=${user.id}`,
-      },
-    });
+    const res = await userApp.request("/logout/start");
 
     expect(res.status).toBe(302);
     expect(res.headers.get("location")).toContain("/logout");
-
-    expect(revokeTokenSpy).toHaveBeenCalledWith("token");
-    expect(deleteRefreshSpy).toHaveBeenCalledWith(user.id);
 
     const cookies = res.headers.get("set-cookie");
     expect(cookies).toBeTruthy();
-    expect(cookies).toContain("token=");
     expect(cookies).toContain("user_id=");
-  });
-
-  it("should still logout if revoke returns false", async () => {
-    vi.spyOn(oauth, "revokeToken").mockResolvedValue(false);
-
-    const res = await userApp.request("/logout/start", {
-      headers: {
-        Cookie: "token=invalidToken", // Check this
-      },
-    });
-
-    expect(res.status).toBe(302);
-    expect(res.headers.get("location")).toContain("/logout");
-  });
-
-  it("should still logout if revoke throws error", async () => {
-    vi.spyOn(oauth, "revokeToken").mockRejectedValue(
-      new Error("Network error"),
-    );
-
-    const res = await userApp.request("/logout/start", {
-      headers: {
-        Cookie: "token=someToken",
-      },
-    });
-
-    expect(res.status).toBe(302);
-    expect(res.headers.get("location")).toContain("/logout");
-  });
-
-  it("should still logout if deleteRefreshToken fails", async () => {
-    vi.spyOn(oauth, "revokeToken").mockResolvedValue(true);
-    vi.spyOn(authService, "deleteRefreshToken").mockRejectedValue(
-      new Error("DB Error"),
-    );
-
-    const res = await userApp.request("/logout/start", {
-      headers: {
-        Cookie: "token=token; user_id=67",
-      },
-    });
-
-    expect(res.status).toBe(302);
-    expect(res.headers.get("location")).toContain("/logout");
   });
 });
 
@@ -303,25 +164,25 @@ describe("change nicknames: Patch /nickname", () => {
   it("should return ok for valid nickname", async () => {
     const user = await createTestUser();
 
-    vi.spyOn(userService, "updateNickname").mockResolvedValue({
-      success: true,
-    });
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
     const res = await userApp.request("/nickname", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `user_id=${user.id}`,
       },
       body: JSON.stringify({ nickname: "newName" }),
     });
 
     expect(res.status).toBe(200);
-    expect(userService.updateNickname).toHaveBeenCalledWith(user.id, "newName");
+    const body = await res.json();
+    expect(body).toContain("Nickname updated");
   });
 
   it("should tell the user nickname already taken", async () => {
     const user = await createTestUser();
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
     vi.spyOn(userService, "updateNickname").mockResolvedValue({
       success: false,
@@ -332,7 +193,6 @@ describe("change nicknames: Patch /nickname", () => {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `user_id=${user.id}`,
       },
       body: JSON.stringify({ nickname: "taken" }),
     });
@@ -346,13 +206,14 @@ describe("change nicknames: Patch /nickname", () => {
   it("should tell the user off for not entering anything", async () => {
     const user = await createTestUser();
 
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
+
     const res = await userApp.request("/nickname", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `user_id=${user.id}`,
       },
-      body: JSON.stringify(""),
+      body: JSON.stringify({}),
     });
 
     expect(res.status).toBe(400);
@@ -364,6 +225,8 @@ describe("change nicknames: Patch /nickname", () => {
   it("should display error too many characters", async () => {
     const user = await createTestUser();
 
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
+
     vi.spyOn(userService, "updateNickname").mockResolvedValue({
       success: false,
       error: "Too many characters",
@@ -373,7 +236,6 @@ describe("change nicknames: Patch /nickname", () => {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `user_id=${user.id}`,
       },
       body: JSON.stringify({ nickname: "012345678901234567890" }),
     });
@@ -387,6 +249,8 @@ describe("change nicknames: Patch /nickname", () => {
   it("should display error only char digits", async () => {
     const user = await createTestUser();
 
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
+
     vi.spyOn(userService, "updateNickname").mockResolvedValue({
       success: false,
       error: "Only characters and digits",
@@ -396,7 +260,6 @@ describe("change nicknames: Patch /nickname", () => {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `user_id=${user.id}`,
       },
       body: JSON.stringify({ nickname: "what?!" }),
     });
@@ -408,15 +271,12 @@ describe("change nicknames: Patch /nickname", () => {
   });
 
   it("detects some funny business", async () => {
-    // forgot about this in my original TDD, oops
-
-    vi.spyOn(userService, "getUserById").mockResolvedValue(null!);
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
 
     const res = await userApp.request("/nickname", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Cookie: "user_id=100000",
       },
       body: JSON.stringify({ nickname: "intruder" }),
     });
@@ -424,7 +284,7 @@ describe("change nicknames: Patch /nickname", () => {
     expect(res.status).toBe(401);
 
     const errorMessage = await res.json();
-    expect(errorMessage).toBe("User not found");
+    expect(errorMessage).toBe("Couldn't validate user");
   });
 });
 
@@ -437,30 +297,24 @@ describe("delete user: Delete /", () => {
   it("should return ok deleted user", async () => {
     const user = await createTestUser();
 
-    vi.spyOn(userService, "deleteUser").mockResolvedValue(user);
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
     const res = await userApp.request("/", {
       method: "DELETE",
-      headers: {
-        Cookie: `token=token; user_id=${user.id}`,
-      },
     });
 
     expect(res.status).toBe(204);
-    expect(userService.deleteUser).toHaveBeenCalledWith(user.id);
   });
   it("should detect postman funny business", async () => {
-    const user = await createTestUser();
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
 
     const res = await userApp.request("/", {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: user.id }),
     });
 
     expect(res.status).toBe(401);
 
-    const data = await res.json();
-    expect(data).toBe("Cannot delete other users");
+    const body = await res.json();
+    expect(body).toBe("Cannot delete other users");
   });
 });

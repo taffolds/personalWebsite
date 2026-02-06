@@ -53,49 +53,10 @@ export async function getTokenFromCode(code: string) {
   return await res.json();
 }
 
-export async function refreshAccessToken(refreshToken: string) {
-  if (!googleClientId || !googleClientSecret) {
-    throw new Error("Error: Missing oauth env variables");
-  }
-
-  const { token_endpoint } = await getDiscoveryDoc();
-
-  const res = await fetch(token_endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: googleClientId,
-      client_secret: googleClientSecret,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
-
-  const data = await res.json();
-
-  if (!data.access_token) {
-    throw new Error("Error: failed to refresh access token");
-  }
-
-  return data.access_token;
-}
-
 export async function getGoogleUserProfile(token: string) {
   const { userinfo_endpoint } = await getDiscoveryDoc();
   const res = await fetch(userinfo_endpoint, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return await res.json();
-}
-
-export async function revokeToken(token: string) {
-  const res = await fetch("https://oauth2.googleapis.com/revoke", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({ token }),
-  });
-
-  return res.ok;
 }
