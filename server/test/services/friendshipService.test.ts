@@ -62,7 +62,12 @@ describe("Accept friend requests", () => {
 
     const friendRequest = await sendFriendRequest(sender.id, "John");
     expect(friendRequest).not.toBeNull();
-    const friendship = await confirmFriendship(sender.id, receiver.id);
+
+    const incomingRequests = await showAllFriendRequests(receiver.id);
+    expect(incomingRequests).toHaveLength(1);
+    const requestId = incomingRequests[0]!.requestId;
+
+    const friendship = await confirmFriendship(requestId, receiver.id);
     const [id1, id2] = [sender.id, receiver.id].sort((a, b) => a - b);
     expect(friendship).not.toBeNull();
     expect(friendship!.userId1).toBe(id1);
@@ -72,14 +77,28 @@ describe("Accept friend requests", () => {
     expect(remainingRequests).toHaveLength(0);
   });
   it("must have request before friendship", async () => {
-    const sender = await createTestUser();
     const receiver = await createTestUser();
 
-    const friendship = await confirmFriendship(sender.id, receiver.id);
+    const friendship = await confirmFriendship(102939, receiver.id);
 
     expect(friendship).toBeNull();
   });
-  it("Should prevent friend requests when already friends", async () => {});
+  it("Should prevent friend requests when already friends", async () => {
+    const sender = await createTestUser();
+    const receiver = await createTestUser();
+
+    await setNicknameTestUser(receiver.id, "Daniel");
+
+    await sendFriendRequest(sender.id, "Daniel");
+    const requests = await showAllFriendRequests(receiver.id);
+    await confirmFriendship(requests[0]!.requestId, receiver.id);
+
+    const friends = await displayAllFriends(sender.id);
+    expect(friends).toHaveLength(1);
+
+    const duplicateRequest = await sendFriendRequest(sender.id, "Daniel");
+    expect(duplicateRequest).toBeNull();
+  });
 });
 
 describe("Decline friend requests", () => {
@@ -90,9 +109,14 @@ describe("Decline friend requests", () => {
 
     const friendRequest = await sendFriendRequest(user1.id, "Sally");
     expect(friendRequest).not.toBeNull();
-    await removeFriendRequest(user1.id, user2.id);
-    const requests = await showAllFriendRequests(user1.id);
-    expect(requests).toHaveLength(0);
+
+    const requests = await showAllFriendRequests(user2.id);
+    const requestId = requests[0]!.requestId;
+
+    const removed = await removeFriendRequest(requestId, user2.id);
+    expect(removed).toBe(true);
+    const remainingRequests = await showAllFriendRequests(user1.id);
+    expect(remainingRequests).toHaveLength(0);
   });
 });
 
@@ -102,6 +126,8 @@ describe("Find friend requests", () => {
     const friend1 = await createTestUser();
     const friend2 = await createTestUser();
     await setNicknameTestUser(receiver.id, "Sara");
+    await setNicknameTestUser(friend1.id, "Liz");
+    await setNicknameTestUser(friend2.id, "Gertrude");
 
     await sendFriendRequest(friend1.id, "Sara");
     await sendFriendRequest(friend2.id, "Sara");
@@ -110,8 +136,11 @@ describe("Find friend requests", () => {
 
     expect(friendRequests).not.toBeNull();
     expect(friendRequests).toHaveLength(2);
-    expect(friendRequests[0]!.requestedBy).toBe(friend1.id);
-    expect(friendRequests[1]!.requestedBy).toBe(friend2.id);
+
+    expect(friendRequests[0]!.fromUserId).toBe(friend1.id);
+    expect(friendRequests[1]!.fromUserId).toBe(friend2.id);
+    expect(friendRequests[0]!.fromNickname).toBe("Liz");
+    expect(friendRequests[1]!.fromNickname).toBe("Gertrude");
   });
 });
 
@@ -136,7 +165,6 @@ describe("Show outgoing requests", () => {
   });
 
   it("should remove an outgoing request", async () => {
-    // redundant?
     const sender = await createTestUser();
     const receiver = await createTestUser();
 
@@ -146,7 +174,11 @@ describe("Show outgoing requests", () => {
     const outgoingRequestsBefore = await showPendingRequests(sender.id);
     expect(outgoingRequestsBefore).toHaveLength(1);
 
-    await removeFriendRequest(sender.id, receiver.id);
+    const allRequests = await showAllFriendRequests(receiver.id);
+    const requestId = allRequests[0]!.requestId;
+
+    await removeFriendRequest(requestId, sender.id);
+
     const outgoingRequestsAfter = await showPendingRequests(sender.id);
     expect(outgoingRequestsAfter).toHaveLength(0);
   });
@@ -207,14 +239,17 @@ describe("Display friends", () => {
     await sendFriendRequest(sender.id, "Vera");
     await sendFriendRequest(sender.id, "Hera");
 
-    await confirmFriendship(sender.id, friend1.id);
-    await confirmFriendship(sender.id, friend2.id);
+    const incomingFriend1 = await showAllFriendRequests(friend1.id);
+    const incomingFriend2 = await showAllFriendRequests(friend2.id);
+
+    await confirmFriendship(incomingFriend1[0]!.requestId, friend1.id);
+    await confirmFriendship(incomingFriend2[0]!.requestId, friend2.id);
 
     const friendList = await displayAllFriends(sender.id);
     // Also alphabetical
     expect(friendList).toHaveLength(2);
-    expect(friendList[0]).toBe("Hera");
-    expect(friendList[1]).toBe("Vera");
+    expect(friendList[0]!.nickname).toBe("Hera");
+    expect(friendList[1]!.nickname).toBe("Vera");
   });
 
   it("should not display others relationships", async () => {
@@ -225,7 +260,8 @@ describe("Display friends", () => {
 
     await setNicknameTestUser(bob.id, "bob");
     await sendFriendRequest(alice.id, "bob");
-    await confirmFriendship(alice.id, bob.id);
+    const req = await showAllFriendRequests(bob.id);
+    await confirmFriendship(req[0]!.requestId, bob.id);
 
     const eveFriends = await displayAllFriends(eve.id);
     expect(eveFriends).toHaveLength(0);
@@ -240,7 +276,11 @@ describe("Remove friends", () => {
 
     await setNicknameTestUser(futureEnemy.id, "nemesis");
     await sendFriendRequest(seriouslyPetty.id, "nemesis");
-    await confirmFriendship(seriouslyPetty.id, futureEnemy.id);
+
+    const requests = await showAllFriendRequests(futureEnemy.id);
+    const requestId = requests[0]!.requestId;
+
+    await confirmFriendship(requestId, futureEnemy.id);
     const oldFriends = await displayAllFriends(seriouslyPetty.id);
     expect(oldFriends).toHaveLength(1);
 

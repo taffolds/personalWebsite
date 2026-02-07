@@ -3,17 +3,8 @@ import { friendRequests, friendships, users } from "../db/schema.js";
 import { eq, and, ne, or, ilike, asc, sql } from "drizzle-orm";
 import { checkValidity } from "../utils/inputValidation.js";
 
-let stopHidingMyShitTypeScript;
-let imTryingToRememberMyThoughts;
-// Select all friend requests
-// Send a friend request
-// Accept a friend request
-// Decline a friend request
-
-// Select all friends
-// and map them in frontend
-
 interface FriendRequestInterface {
+  id: number;
   userId1: number;
   userId2: number;
   requestedBy: number;
@@ -21,6 +12,7 @@ interface FriendRequestInterface {
 }
 
 interface FriendshipInterface {
+  id: number;
   userId1: number;
   userId2: number;
   createdAt: Date;
@@ -37,6 +29,16 @@ export async function sendFriendRequest(
   const ids = [requestedBy, findFriend.id].sort((a, b) => a - b);
   const id1 = ids[0] as number;
   const id2 = ids[1] as number;
+
+  const existingFriendship = await db
+    .select()
+    .from(friendships)
+    .where(and(eq(friendships.userId1, id1), eq(friendships.userId2, id2)));
+
+  if (existingFriendship.length > 0) {
+    console.warn("Cannot send friend request - already friends");
+    return null;
+  }
 
   try {
     const createdRequest = await db
@@ -67,8 +69,7 @@ export async function findUserByNickname(nickname: string) {
     .from(users)
     .where(eq(users.nickname, nickname)); // Maybe just be strict on this
 
-  return findFriend || null; // Think about what I'm returning here, and to where
-  // And remember this wasn't a part of TDD
+  return findFriend || null;
 }
 
 // Maybe there are two checks, one to find the complete user in backend, and one that selects all users, and only sends username to frontend
@@ -76,16 +77,25 @@ export async function findUserByNickname(nickname: string) {
 // nickname LIKE "%param%"
 
 export async function confirmFriendship(
-  user1: number,
-  user2: number,
+  requestId: number,
+  userId: number,
 ): Promise<FriendshipInterface | null> {
-  const ids = [user1, user2].sort((a, b) => a - b);
+  const [request] = await db
+    .select()
+    .from(friendRequests)
+    .where(eq(friendRequests.id, requestId));
+
+  if (!request) return null;
+
+  const isReceiver =
+    (request.userId1 === userId || request.userId2 === userId) &&
+    request.requestedBy !== userId;
+
+  if (!isReceiver) return null;
+
+  const ids = [request.userId1, request.userId2].sort((a, b) => a - b);
   const id1 = ids[0] as number;
-  const id2 = ids[1] as number; // I hate your guts TypeScript
-
-  const existingRequest = await checkRequestExists(id1, id2);
-
-  if (!existingRequest) return null;
+  const id2 = ids[1] as number;
 
   const res = await db.transaction(async (tx) => {
     const newFriendship = await tx
@@ -97,7 +107,7 @@ export async function confirmFriendship(
       })
       .returning();
 
-    await removeFriendRequest(id1, id2, tx);
+    await tx.delete(friendRequests).where(eq(friendRequests.id, requestId));
 
     return newFriendship[0] ?? null;
   });
@@ -105,50 +115,39 @@ export async function confirmFriendship(
   return res;
 }
 
-async function checkRequestExists(
-  user1: number,
-  user2: number,
-): Promise<Boolean> {
-  const existingRequest = await db
+export async function removeFriendRequest(requestId: number, userId: number) {
+  const [request] = await db
     .select()
     .from(friendRequests)
-    .where(
-      and(eq(friendRequests.userId1, user1), eq(friendRequests.userId2, user2)),
-    );
-  if (existingRequest.length > 0) {
-    return true;
-  } else {
-    return false;
-  }
-}
+    .where(eq(friendRequests.id, requestId));
 
-export async function removeFriendRequest(
-  user1: number,
-  user2: number,
-  client: any = db,
-) {
-  const ids = [user1, user2].sort((a, b) => a - b);
-  const id1 = ids[0] as number;
-  const id2 = ids[1] as number;
+  if (!request) return false;
+
+  const isPartOfIt = request.userId1 === userId || request.userId2 === userId;
+
+  if (!isPartOfIt) return false;
 
   try {
-    await client
-      .delete(friendRequests)
-      .where(
-        and(eq(friendRequests.userId1, id1), eq(friendRequests.userId2, id2)),
-      );
+    await db.delete(friendRequests).where(eq(friendRequests.id, requestId));
+    return true;
   } catch (error) {
     console.error("Failed to remove friend request: ", error);
     throw error;
   }
 }
 
-export async function showAllFriendRequests(
-  userId: number,
-): Promise<FriendRequestInterface[] | []> {
+export async function showAllFriendRequests(userId: number) {
+  const fromUserId = sql<number>`CASE WHEN ${friendRequests.userId1} = ${userId} THEN ${friendRequests.userId2} ELSE ${friendRequests.userId1} END`;
+
   const requests = await db
-    .select()
+    .select({
+      requestId: friendRequests.id,
+      fromUserId: fromUserId,
+      fromNickname: users.nickname,
+      createdAt: friendRequests.createdAt,
+    })
     .from(friendRequests)
+    .innerJoin(users, eq(fromUserId, users.id))
     .where(
       and(
         or(
@@ -193,6 +192,7 @@ export async function displayAllFriends(userId: number) {
 
   const res = await db
     .select({
+      userId: friendId,
       nickname: users.nickname,
     })
     .from(friendships)
@@ -200,19 +200,25 @@ export async function displayAllFriends(userId: number) {
     .where(or(eq(friendships.userId1, userId), eq(friendships.userId2, userId)))
     .orderBy(asc(users.nickname));
 
-  return res.map((r) => r.nickname);
+  return res;
 }
 
-export async function removeFriendship(user1: number, user2: number) {
+export async function removeFriendship(
+  user1: number,
+  user2: number,
+): Promise<FriendshipInterface | null> {
   const ids = [user1, user2].sort((a, b) => a - b);
   const id1 = ids[0] as number;
   const id2 = ids[1] as number; // stfu TypeScript... what would it be
   // id as banana? Cut me a break...
 
   try {
-    await db
+    const res = await db
       .delete(friendships)
-      .where(and(eq(friendships.userId1, id1), eq(friendships.userId2, id2)));
+      .where(and(eq(friendships.userId1, id1), eq(friendships.userId2, id2)))
+      .returning();
+
+    return res[0] ?? null;
   } catch (error) {
     console.error("Failed to remove friend: ", error);
     throw error;
