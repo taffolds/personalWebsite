@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import friendshipApp from "../friendshipServer.js";
+
 import { createTestUser, setNicknameTestUser } from "./helper.js";
 import { getSignedCookie } from "hono/cookie";
 
@@ -10,6 +10,8 @@ vi.mock("hono/cookie", async () => {
     getSignedCookie: vi.fn(),
   };
 });
+
+import friendshipApp from "../friendshipServer.js";
 
 describe("Search for users", () => {
   afterEach(() => {
@@ -75,9 +77,11 @@ describe("Send friend requests", () => {
     await setNicknameTestUser(sender.id, "Karen");
     await setNicknameTestUser(receiver.id, "Helen");
 
-    vi.mocked(getSignedCookie).mockResolvedValue(String(sender.id));
+    const mockFn = vi.mocked(getSignedCookie);
+    mockFn.mockResolvedValue(String(sender.id));
+    //vi.mocked(getSignedCookie).mockResolvedValue(String(sender.id));
 
-    const res = await friendshipApp.request("/friendRequest", {
+    const res = await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -96,7 +100,7 @@ describe("Send friend requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(impatient.id));
 
-    const res = await friendshipApp.request("/friendRequest", {
+    const res = await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -106,7 +110,7 @@ describe("Send friend requests", () => {
 
     expect(res.status).toBe(201);
 
-    const again = await friendshipApp.request("/friendRequest", {
+    const again = await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -124,7 +128,7 @@ describe("Send friend requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const res = await friendshipApp.request("/friendRequest", {
+    const res = await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -162,7 +166,7 @@ describe("Pending outgoing requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -170,7 +174,7 @@ describe("Pending outgoing requests", () => {
       body: JSON.stringify({ nickname: "Darren" }),
     });
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -178,13 +182,13 @@ describe("Pending outgoing requests", () => {
       body: JSON.stringify({ nickname: "Warren" }),
     });
 
-    const res = await friendshipApp.request("/outgoingRequests");
+    const res = await friendshipApp.request("/requests/outgoing");
     expect(res.status).toBe(200);
 
     const data = await res.json();
-    expect(data).toHaveLength(2);
-    expect(data[0]).toContain("Darren");
-    expect(data[1]).toContain("Warren");
+    expect(data.outgoingRequests).toHaveLength(2);
+    expect(data.outgoingRequests[0]).toContain("Darren");
+    expect(data.outgoingRequests[1]).toContain("Warren");
   });
 
   it("Should show no outgoing requests when there are none", async () => {
@@ -193,11 +197,11 @@ describe("Pending outgoing requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const res = await friendshipApp.request("/outgoingRequests");
+    const res = await friendshipApp.request("/requests/outgoing");
     expect(res.status).toBe(200);
 
     const data = await res.json();
-    expect(data).toHaveLength(0);
+    expect(data.outgoingRequests).toHaveLength(0);
   });
 
   it("should tell the user needs nickname", async () => {
@@ -205,7 +209,7 @@ describe("Pending outgoing requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const res = await friendshipApp.request("/outgoingRequests");
+    const res = await friendshipApp.request("/requests/outgoing");
 
     expect(res.status).toBe(403);
     const data = await res.json();
@@ -214,7 +218,7 @@ describe("Pending outgoing requests", () => {
 
   it("should tell the user not authenticated", async () => {
     vi.mocked(getSignedCookie).mockResolvedValue(undefined);
-    const res = await friendshipApp.request("/outgoingRequests");
+    const res = await friendshipApp.request("/requests/outgoing");
     expect(res.status).toBe(401);
     const data = await res.json();
     expect(data).toContain("Not authenticated");
@@ -233,7 +237,7 @@ describe("Pending incoming requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(sender.id));
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -243,11 +247,11 @@ describe("Pending incoming requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(receiver.id));
 
-    const res = await friendshipApp.request("/incomingRequests");
+    const res = await friendshipApp.request("/requests/incoming");
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveLength(1);
-    expect(data[0]).toContain("Julia");
+    expect(data[0].fromNickname).toBe("Julia");
   });
 
   it("should show no requests when none exist", async () => {
@@ -256,7 +260,7 @@ describe("Pending incoming requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const res = await friendshipApp.request("/incomingRequests");
+    const res = await friendshipApp.request("/requests/incoming");
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveLength(0);
@@ -267,14 +271,15 @@ describe("Pending incoming requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const res = await friendshipApp.request("/incomingRequests");
+    const res = await friendshipApp.request("/requests/incoming");
     expect(res.status).toBe(403);
     const data = await res.json();
     expect(data).toContain("Need to set a nickname to access resource");
   });
 
   it("should tell the user not authenticated", async () => {
-    const res = await friendshipApp.request("/incomingRequests");
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
+    const res = await friendshipApp.request("/requests/incoming");
     expect(res.status).toBe(401);
     const data = await res.json();
     expect(data).toContain("Not authenticated");
@@ -293,7 +298,7 @@ describe("Confirm friend requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(sender.id));
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -303,7 +308,7 @@ describe("Confirm friend requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(receiver.id));
 
-    const incomingRes = await friendshipApp.request("/incomingRequests");
+    const incomingRes = await friendshipApp.request("/requests/incoming");
     const requests = await incomingRes.json();
 
     expect(requests).toHaveLength(1);
@@ -311,7 +316,7 @@ describe("Confirm friend requests", () => {
 
     const requestId = requests[0].requestId;
 
-    const res = await friendshipApp.request("/confirmFriend", {
+    const res = await friendshipApp.request("/requests/accept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -328,7 +333,7 @@ describe("Confirm friend requests", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const res = await friendshipApp.request("/confirmFriend", {
+    const res = await friendshipApp.request("/requests/accept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -344,7 +349,8 @@ describe("Confirm friend requests", () => {
   });
 
   it("should say who do you think you are? not authenticated, that's who", async () => {
-    const res = await friendshipApp.request("/confirmFriend", {
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
+    const res = await friendshipApp.request("/requests/accept", {
       method: "POST",
       body: JSON.stringify({
         userId: 1,
@@ -365,11 +371,12 @@ describe("Remove friend request", () => {
   it("should remove a friend request", async () => {
     const sender = await createTestUser();
     const receiver = await createTestUser();
+    await setNicknameTestUser(sender.id, "Sylvia");
     await setNicknameTestUser(receiver.id, "Clara");
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(sender.id));
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -379,13 +386,13 @@ describe("Remove friend request", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(receiver.id));
 
-    const incomingRes = await friendshipApp.request("/incomingRequests");
+    const incomingRes = await friendshipApp.request("/requests/incoming");
     const requests = await incomingRes.json();
 
     expect(requests).toHaveLength(1);
     const requestId = requests[0].requestId;
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/delete", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -395,7 +402,7 @@ describe("Remove friend request", () => {
       }),
     });
 
-    const res = await friendshipApp.request("/incomingRequests");
+    const res = await friendshipApp.request("/requests/incoming");
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveLength(0);
@@ -405,12 +412,13 @@ describe("Remove friend request", () => {
     const alice = await createTestUser();
     const bob = await createTestUser();
     const eve = await createTestUser();
-
+    await setNicknameTestUser(alice.id, "alice");
     await setNicknameTestUser(bob.id, "bob");
+    await setNicknameTestUser(eve.id, "eve");
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(alice.id));
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -420,13 +428,13 @@ describe("Remove friend request", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(bob.id));
 
-    const bobRequests = await friendshipApp.request("/incomingRequests");
+    const bobRequests = await friendshipApp.request("/requests/incoming");
     const requests = await bobRequests.json();
     const requestId = requests[0].requestId;
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(eve.id));
 
-    const res = await friendshipApp.request("/friendRequest", {
+    const res = await friendshipApp.request("/requests/delete", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -442,9 +450,13 @@ describe("Remove friend request", () => {
   it("should tell the user they are not authenticated", async () => {
     const user = await createTestUser();
     await setNicknameTestUser(user.id, "Locke");
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
 
-    const res = await friendshipApp.request("/friendRequest", {
-      method: "POST",
+    const res = await friendshipApp.request("/requests/delete", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ requestId: 1 }),
     });
 
@@ -469,7 +481,7 @@ describe("Display a user's friends", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(friend1.id));
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -479,7 +491,7 @@ describe("Display a user's friends", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(friend2.id));
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -489,49 +501,50 @@ describe("Display a user's friends", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const incomingRes = await friendshipApp.request("/incomingRequests");
+    const incomingRes = await friendshipApp.request("/requests/incoming");
     const requests = await incomingRes.json();
 
     expect(requests).toHaveLength(2);
 
-    const reqFrida = requests[0];
-    const reqFelix = requests[1]; // This is madness
+    const reqFrida = requests[0].requestId;
+    const reqFelix = requests[1].requestId; // This is madness
 
-    await friendshipApp.request("/confirmFriend", {
+    await friendshipApp.request("/requests/accept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        reqFrida,
+        requestId: reqFrida,
       }),
     });
 
-    await friendshipApp.request("/confirmFriend", {
+    await friendshipApp.request("/requests/accept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        reqFelix,
+        requestId: reqFelix,
       }),
     });
 
-    const res = await friendshipApp.request("/displayFriends");
+    const res = await friendshipApp.request("/friends");
 
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data[0]).toBe("Felix");
-    expect(data[1]).toBe("Frida");
     expect(data).toHaveLength(2);
+    expect(data[0].nickname).toBe("Felix");
+    expect(data[1].nickname).toBe("Frida");
   });
 
   it("should display no friends when there are none", async () => {
     const user = await createTestUser();
+    await setNicknameTestUser(user.id, "Gerald");
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const res = await friendshipApp.request("/displayFriends");
+    const res = await friendshipApp.request("/friends");
 
     expect(res.status).toBe(200);
     const data = await res.json();
@@ -539,7 +552,8 @@ describe("Display a user's friends", () => {
   });
 
   it("should tell the user they are not authenticated", async () => {
-    const res = await friendshipApp.request("/displayFriends");
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
+    const res = await friendshipApp.request("/friends");
     expect(res.status).toBe(401);
     const data = await res.json();
     expect(data).toContain("Not authenticated");
@@ -558,7 +572,7 @@ describe("Delete user", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(sender.id));
 
-    await friendshipApp.request("/friendRequest", {
+    await friendshipApp.request("/requests/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -568,11 +582,11 @@ describe("Delete user", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(receiver.id));
 
-    const incomingRes = await friendshipApp.request("/incomingRequests");
+    const incomingRes = await friendshipApp.request("/requests/incoming");
     const requests = await incomingRes.json();
     const requestId = requests[0].requestId;
 
-    await friendshipApp.request("/confirmFriend", {
+    await friendshipApp.request("/requests/accept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -582,7 +596,7 @@ describe("Delete user", () => {
       }),
     });
 
-    const res = await friendshipApp.request("/removeFriend", {
+    const res = await friendshipApp.request("/friends/delete", {
       method: "DELETE",
       body: JSON.stringify({
         friendId: sender.id,
@@ -593,19 +607,19 @@ describe("Delete user", () => {
     const data = await res.json();
     expect(data).toContain("Removed Winston as a friend");
 
-    const friendsRes = await friendshipApp.request("/displayFriends");
+    const friendsRes = await friendshipApp.request("/friends");
     const friends = await friendsRes.json();
     expect(friends).toHaveLength(0);
   });
 
-  it("should not allow deleting a some random", async () => {
+  it("should not allow deleting some random", async () => {
     const trickster = await createTestUser();
     const unsuspecting = await createTestUser();
     await setNicknameTestUser(trickster.id, "Carlo");
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(trickster.id));
 
-    const res = await friendshipApp.request("/removeFriend", {
+    const res = await friendshipApp.request("/friends/delete", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -619,7 +633,8 @@ describe("Delete user", () => {
   });
 
   it("should require authentication to delete friend", async () => {
-    const res = await friendshipApp.request("/removeFriend", {
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
+    const res = await friendshipApp.request("/friends/delete", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
