@@ -17,12 +17,27 @@ export function ProfilePage() {
   const [newNickname, setNewNickname] = useState("");
   const [deleteProfilePrompt, setDeleteProfilePrompt] = useState(false);
   const [isDeletingProfile, setIsDeletingProfile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<string[]>([]);
+  const [friends, setFriends] = useState<any[]>([]);
+  const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
   const navigate = useNavigate();
 
-  // What happens if you want to remove your nickname?
-  // Disallow it?
-  // Own button?
-  // Button, and also write blank, set to null
+  useEffect(() => {
+    if (profile?.nickname) {
+      loadFriendsData();
+    }
+  }, [profile]);
+
+  async function loadFriendsData() {
+    const [friendsRes, incomingRes] = await Promise.all([
+      fetch("/api/friendship/friends"),
+      fetch("/api/friendship/requests/incoming"),
+    ]);
+
+    if (friendsRes.ok) setFriends(await friendsRes.json());
+    if (incomingRes.ok) setIncomingRequests(await incomingRes.json());
+  }
 
   useEffect(() => {
     if (!profile && !loading && !isDeletingProfile) {
@@ -35,6 +50,22 @@ export function ProfilePage() {
   if (loading) return <p>Loading profile</p>;
 
   if (!profile) return <p>Not logged in, redirecting...</p>;
+
+  if (!profile.nickname)
+    return (
+      <>
+        <Banner />
+        <h1>Need to set a nickname</h1>
+        <form onSubmit={handleSaveNickname}>
+          <input
+            value={newNickname}
+            placeholder="Enter nickname"
+            onChange={(e) => setNewNickname(e.target.value)}
+          />
+          <button>Save</button>
+        </form>
+      </>
+    );
 
   function handleOpenUserWarning() {
     setDeleteProfilePrompt(true);
@@ -81,6 +112,59 @@ export function ProfilePage() {
     setNewNickname("");
   }
 
+  // Refresh profile page whenever a change has occurred so that friendship elements render in the right boxes
+
+  async function handleSearchForUser(event: FormEvent) {
+    event.preventDefault();
+
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const res = await fetch(`/api/friendship/search?query=${searchQuery}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.log("Error: ", data.error);
+      return;
+    }
+
+    setSearchResults(data);
+  }
+
+  async function handleSendFriendRequest(nickname: string) {
+    const res = await fetch("/api/friendship/requests/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nickname }),
+    });
+
+    if (!res.ok) {
+      alert("ffs");
+      return;
+    }
+
+    await loadFriendsData();
+  }
+
+  async function handleAcceptRequest(requestId: number) {
+    const res = await fetch("/api/friendship/requests/accept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId }),
+    });
+    if (res.ok) await loadFriendsData();
+  }
+
+  async function handleRemoveFriend(friendId: number) {
+    const res = await fetch("/api/friendship/friends/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ friendId }),
+    });
+    if (res.ok) await loadFriendsData();
+  }
+
   return (
     <>
       <Banner />
@@ -106,20 +190,57 @@ export function ProfilePage() {
           <button onClick={handleCloseUserWarning}>No</button>
         </>
       )}
+
+      <div>
+        <h3>Search For User</h3>
+        <form onSubmit={handleSearchForUser}>
+          <input
+            value={searchQuery}
+            placeholder="Search for user"
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button>Search</button>
+        </form>
+        <div>
+          <p>RESULTS:</p>
+          <ul>
+            {searchResults.map((nickname) => (
+              <li key={nickname}>
+                {nickname}
+                <button onClick={() => handleSendFriendRequest(nickname)}>
+                  Add
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      {searchQuery && searchResults.length === 0 && <p>No users found</p>}
+
       <div>
         <h3>Friends:</h3>
-        <p>Do some ternary here too</p>
         <ul>
-          <li>map friends here later</li>
+          {friends.map((friend) => (
+            <li key={friend.userId}>
+              {friend.nickname}
+              <button onClick={() => handleRemoveFriend(friend.userId)}>
+                Remove
+              </button>
+            </li>
+          ))}
         </ul>
       </div>
       <div>
-        <div>friend Get /friendRequests</div>
-        <h3>Some pseudo Friend requests:</h3>
-        <p>noFriendrequests ?</p>
-        <p>friendRequests && show</p>
+        <h3>Friend Requests:</h3>
         <ul>
-          <li>requests here</li>
+          {incomingRequests.map((r) => (
+            <li key={r.requestId}>
+              {r.fromNickname}
+              <button onClick={() => handleAcceptRequest(r.requestId)}>
+                Accept
+              </button>
+            </li>
+          ))}
         </ul>
       </div>
     </>
