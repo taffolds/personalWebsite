@@ -2,7 +2,6 @@ import { afterEach } from "vitest";
 import { db } from "../db/index.js";
 import {
   users,
-  blocks,
   friendships,
   friendRequests,
   gameRequests,
@@ -17,6 +16,5 @@ afterEach(async () => {
   await db.delete(gameRequests);
   await db.delete(friendRequests);
   await db.delete(friendships);
-  await db.delete(blocks);
   await db.delete(users);
 });

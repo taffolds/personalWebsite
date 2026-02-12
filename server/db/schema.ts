@@ -25,6 +25,7 @@ export const users = pgTable("users", {
   lastLoginAt: timestamp("last_login_at"),
 });
 
+/*
 export const blocks = pgTable(
   "blocks",
   {
@@ -39,6 +40,7 @@ export const blocks = pgTable(
   },
   (table) => [unique("unique_block_pair").on(table.blocker, table.blocked)],
 );
+ */
 
 export const friendships = pgTable(
   "friendships",
@@ -113,7 +115,7 @@ export const games = pgTable("games", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   moves: jsonb("moves").$type<Move[]>().notNull().default([]), // come back to this!!
-  currentTurn: integer("current_turn")
+  firstMove: integer("first_move")
     .notNull()
     .references(() => users.id),
   winnerId: integer("winner_id").references(() => users.id),

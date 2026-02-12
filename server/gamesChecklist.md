@@ -19,4 +19,11 @@ or they can log in to play people online
 [] If numbers, order by dateCreated, and number in for loop/map
 [] Delete all associated games when a user requests to have their info deleted
 
+Just realised if I want historic moves, I can add a column to the "games" table called "firstMover", then in the JSON
+array store the move numbers. This will allow:
+show the correct colours to the player when replaying games
+give the player the possibility to choose starting colour easily
+log games
+easy to cycle through moves in order in react
+
 [] WebSocket - what a pain this will be...
