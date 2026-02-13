@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import userApp from "./userServer.js";
 import friendshipApp from "./friendshipServer.js";
+import gameApp from "./gameServer.js";
 // remember serveStatic when going to production
 // import { serveStatic } from "@hono/node-server/serve-static";
 
@@ -16,6 +17,7 @@ export function createApp() {
 
   app.route("/api/user", userApp);
   app.route("/api/friendship", friendshipApp);
+  app.route("/api/games", gameApp);
 
   return app;
 }

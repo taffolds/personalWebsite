@@ -41,6 +41,7 @@ export async function sendFriendRequest(
   }
 
   try {
+    // Why is this in try catch? I'm checking the same thing further up
     const createdRequest = await db
       .insert(friendRequests)
       .values({
@@ -93,7 +94,7 @@ export async function confirmFriendship(
 
   if (!isReceiver) return null;
 
-  const ids = [request.userId1, request.userId2].sort((a, b) => a - b);
+  const ids = [request.userId1, request.userId2].sort((a, b) => a - b); // Should be sorted already... consider removing
   const id1 = ids[0] as number;
   const id2 = ids[1] as number;
 

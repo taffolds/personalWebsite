@@ -4,6 +4,11 @@ you need to log in to play? In any case, there needs to be some kind
 of feedback to user to say if they are playing against a friend
 or they can log in to play people online
 
+Where are games accessed from? From the four in a row page?
+Where are they created? Profile page? Separate page? Load from four in a row page?
+What about cycling through games? There are some architectural and layout concerns.
+Start with the duct tape, refactor later
+
 [] Only allow one active game per friendship
 [] Games expire after 3 days of no moves
 [] Last to make move is winner

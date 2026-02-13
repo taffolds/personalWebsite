@@ -14,7 +14,7 @@ function Application() {
   return (
     <Routes>
       <Route path={"/"} element={<FrontPage />} />
-      <Route path={"/fourInARow"} element={<FourInARow />} />
+      <Route path={"/fourInARow/:gameId"} element={<FourInARow />} />
       <Route path={"/aboutDevelopment"} element={<AboutDevelopment />} />
       <Route path={"/profile"} element={<ProfilePage />} />
       <Route path={"/login"} element={<LoginPage />} />

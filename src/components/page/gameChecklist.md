@@ -17,3 +17,8 @@ Make CSS mobile friendly from start!
 [] Animate pieces falling from top of board to final position
 [] Animate a win
 [] Remove transparent from .cells once done debugging
+
+Other:
+[] Make two routes from four in a row link
+[] One to offline, with info
+[] One to online, which lists friends and games

@@ -89,6 +89,9 @@ export const gameRequests = pgTable(
     userId2: integer("user_id_2")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    firstMove: integer("first_move")
+      .notNull()
+      .references(() => users.id),
     requestedBy: integer("requested_by")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -101,7 +104,7 @@ export const gameRequests = pgTable(
 );
 
 type Move = {
-  player: number;
+  moveNumber: number;
   column: number;
   timestamp: string;
 };

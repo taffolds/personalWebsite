@@ -14,8 +14,7 @@ import {
 
 const friendshipApp = new Hono();
 
-// Don't forget the nickname lookup
-
+// Needs a good refactor
 const cookieSecret = process.env.COOKIE_SECRET!;
 
 if (!cookieSecret) {
@@ -62,7 +61,7 @@ friendshipApp.post("/requests/send", async (c) => {
   const { nickname } = await c.req.json();
 
   if (!nickname)
-    return c.json("Need to set a nickname to access resource", 400);
+    return c.json("Need to set a nickname to access resource", 400); // Faulty debug message
 
   const sentRequest = await sendFriendRequest(
     validatedUser!.user!.id,
