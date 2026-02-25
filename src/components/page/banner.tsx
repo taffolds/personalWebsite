@@ -10,7 +10,7 @@ const Banner = () => {
   const { profile } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const isGamePage = location.pathname === "/fourInARow";
+  const isGamePage = location.pathname.startsWith("/fourInARow");
   const isLoginPage = location.pathname === "/login";
   const toggle = () => setIsOpen(!isOpen);
   const hide = () => setIsOpen(false);
