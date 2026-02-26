@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import * as schema from "./schema.js";
 
 if (process.env.NODE_ENV === "test") {
-  dotenv.config({ path: ".env.test" });
+  dotenv.config({ path: ".env.test", override: true });
 } else {
   dotenv.config({ path: ".env" });
 }

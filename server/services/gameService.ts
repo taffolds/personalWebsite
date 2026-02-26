@@ -23,7 +23,7 @@ export async function sendGameRequest(
     .where(and(eq(gameRequests.userId1, id1), eq(gameRequests.userId2, id2)));
 
   if (existingGameRequest.length > 0) {
-    console.warn("Can't send game request - already exists");
+    // console.warn("Can't send game request - already exists");
     return null;
   }
 
@@ -138,7 +138,6 @@ export async function checkActiveGame(gameId: number) {
 }
 
 export async function checkTurn(playerId: number, gameId: number) {
-  // Is this async?
   const [game] = await db.select().from(games).where(eq(games.id, gameId));
 
   if (!game) return null;
