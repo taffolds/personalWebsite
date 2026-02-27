@@ -603,7 +603,7 @@ describe("Delete user", () => {
 
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data).toContain("Removed Winston as a friend");
+    expect(data.message).toBe("Friendship removed");
 
     const friendsRes = await friendshipApp.request("/friends");
     const friends = await friendsRes.json();

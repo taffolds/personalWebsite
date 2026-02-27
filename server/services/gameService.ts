@@ -42,6 +42,42 @@ export async function sendGameRequest(
   return createdRequest[0] ?? null;
 }
 
+export async function getGameRequest(userId1: number, userId2: number) {
+  const ids = [userId1, userId2].sort((a, b) => a - b);
+
+  const [request] = await db
+    .select()
+    .from(gameRequests)
+    .where(
+      and(eq(gameRequests.userId1, ids[0]!), eq(gameRequests.userId2, ids[1]!)),
+    )
+    .limit(1);
+
+  return request ?? null;
+}
+
+export async function checkGameExists(
+  userId1: number,
+  userId2: number,
+): Promise<boolean> {
+  const ids = [userId1, userId2].sort((a, b) => a - b);
+  const id1 = ids[0] as number;
+  const id2 = ids[1] as number;
+
+  const [game] = await db
+    .select()
+    .from(games)
+    .where(
+      and(
+        eq(games.playerOneId, id1),
+        eq(games.playerTwoId, id2),
+        eq(games.status, "in_progress"),
+      ),
+    );
+
+  return !!game;
+}
+
 export async function acceptGameRequest(requestId: number, userId: number) {
   const [request] = await db
     .select()

@@ -18,15 +18,6 @@ vi.mock("hono/cookie", async () => {
 
 import gameApp from "../gameServer.js";
 
-/*
-VERY IMPORTANT:
-    Remember to look through all the places with the following comment:
-    //firstMover: user1.id,
-
-    It needs including in all future requests, but I want to make tests
-    work as is first
-*/
-
 describe("Send game request", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -46,7 +37,7 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -68,7 +59,7 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -81,7 +72,7 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -96,7 +87,7 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user1.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -118,7 +109,7 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -147,7 +138,7 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user1.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -167,7 +158,7 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -176,6 +167,8 @@ describe("Send game request", () => {
   it("should require being logged in", async () => {
     const user = await createTestUser();
 
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
+
     const res = await gameApp.request("/requests/send", {
       method: "POST",
       headers: {
@@ -183,10 +176,11 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user.id,
+        firstMove: user.id,
       }),
     });
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(401);
   });
   it("requires a destination friend for the request", async () => {
     const user1 = await createTestUser();
@@ -201,12 +195,12 @@ describe("Send game request", () => {
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({}),
     });
 
     expect(res.status).toBe(400);
   });
-  // should not allow game requests to oneself
-  // will also fail
+
   it("should stop you from sending yourself a request", async () => {
     const user1 = await createTestUser();
     await setNicknameTestUser(user1.id, "agatha");
@@ -220,16 +214,17 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user1.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(403);
   });
-  // this test intentionally fails
+
   it("should allow you to send a request, and be playerTwo", async () => {
     const user1 = await createTestUser();
     const user2 = await createTestUser();
     await setNicknameTestUser(user1.id, "timothy");
+    await setNicknameTestUser(user2.id, "jessica");
     await createTestFriendship(user1.id, user2.id);
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user1.id));
@@ -241,11 +236,35 @@ describe("Send game request", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        firstMover: user2.id,
+        firstMove: user2.id,
       }),
     });
 
     expect(res.status).toBe(201);
+    const data = await res.json();
+    const requestId = data.requestId;
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user2.id));
+
+    const acceptRequest = await gameApp.request("/requests/accept", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        requestId: requestId,
+      }),
+    });
+
+    expect(acceptRequest.status).toBe(201);
+    const newGame = await acceptRequest.json();
+    const gameId = newGame.id;
+
+    const getGameForCheck = await gameApp.request(`/game/${gameId}`);
+    expect(getGameForCheck.status).toBe(200);
+
+    const gameData = await getGameForCheck.json();
+    expect(gameData.firstMove).toBe(user2.id);
   });
 });
 
@@ -269,7 +288,7 @@ describe("Accept game request", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -309,7 +328,7 @@ describe("Accept game request", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -346,7 +365,7 @@ describe("Accept game request", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -388,7 +407,7 @@ describe("Incoming game requests", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user2.id, // intentional to test two in one
+        firstMove: user2.id, // intentional to test two in one
       }),
     });
 
@@ -450,7 +469,7 @@ describe("Current game", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 
@@ -503,7 +522,7 @@ describe("Current game", () => {
       },
       body: JSON.stringify({
         friendId: user2.id,
-        //firstMover: user1.id,
+        firstMove: user1.id,
       }),
     });
 

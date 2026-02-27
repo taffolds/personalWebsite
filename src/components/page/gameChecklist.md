@@ -17,6 +17,8 @@ Make CSS mobile friendly from start!
 [] Animate pieces falling from top of board to final position
 [] Animate a win
 [] Remove transparent from .cells once done debugging
+[] When entering a game, make only last piece fall
+[] When polling, do not reanimate same piece twice
 
 Other:
 [] Make two routes from four in a row link

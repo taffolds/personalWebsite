@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { getUserById } from "./services/userService.js";
 import { getSignedCookie } from "hono/cookie";
 import {
+  getFriendship,
   confirmFriendship,
   displayAllFriends,
   removeFriendRequest,
@@ -14,7 +15,7 @@ import {
 
 const friendshipApp = new Hono();
 
-// Needs a good refactor
+// DO NOT CHANGE UNLESS ALSO CHANGING VALIDATION LOGIC IN GAME_SERVER
 const cookieSecret = process.env.COOKIE_SECRET!;
 
 if (!cookieSecret) {
@@ -142,15 +143,13 @@ friendshipApp.delete("/friends/delete", async (c) => {
   const { friendId } = await c.req.json();
   if (!friendId) return c.json("Need to send have a friendId", 400);
 
-  const friendships = await displayAllFriends(validatedUser.user.id);
-  const friendship = friendships.find((f) => f.userId === friendId);
+  const friendship = await getFriendship(validatedUser.user.id, friendId);
 
   if (!friendship) return c.json("Friendship not found", 404);
 
-  await removeFriendship(validatedUser.user.id, friendship!.userId);
+  await removeFriendship(friendship.userId1, friendship.userId2);
 
-  const removalMessage = `Removed ${friendship.nickname} as a friend`;
-  return c.json(removalMessage, 200);
+  return c.json({ message: "Friendship removed" }, 200);
 });
 
 export default friendshipApp;

@@ -12,13 +12,14 @@ import {
   forfeitGame,
   validateUserGame,
   checkActiveGame,
+  checkGameExists,
+  getGameRequest,
 } from "./services/gameService.js";
+import { getFriendship } from "./services/friendshipService.js";
 
 const gameApp = new Hono();
 
-// Bad code smell, duplicated from friendshipServer
-// But some duct tape will do for now
-// Cannot be bothered writing the code without validating user from get go
+// DO NOT CHANGE UNLESS ALSO CHANGING VALIDATION LOGIC IN FRIENDSHIP_SERVER
 const cookieSecret = process.env.COOKIE_SECRET!;
 
 if (!cookieSecret) {
@@ -46,26 +47,38 @@ async function validateUserDetails(c: any): Promise<ValidationResult> {
 
 gameApp.post("/requests/send", async (c) => {
   // Validate friendship
-  // Validate no active games
   // Validate no active requests
   const validatedUser = await validateUserDetails(c);
   if ("error" in validatedUser)
     return c.json(validatedUser.error, validatedUser.status as any);
 
-  const { friendId } = await c.req.json();
+  const { friendId, firstMove } = await c.req.json();
 
   if (!friendId) return c.json("Who you sending this game request to?", 400);
+  if (!firstMove) return c.json("Need first mover", 400);
 
-  // IMPORTANT: I DON'T WANT REQUESTER TO BE PLAYER ONE
-  // but this is a temporary hack job duct tape fix to connect it all
+  if (friendId === validatedUser.user.id)
+    return c.json("Cannot send request to yourself", 403);
+
+  const validateFriendship = await getFriendship(
+    validatedUser.user.id,
+    friendId,
+  );
+  if (!validateFriendship) return c.json("No active friendship", 403);
+
+  const existingRequest = await getGameRequest(validatedUser.user.id, friendId);
+  if (existingRequest) return c.json("Game request already exists", 409);
+
+  const existingGame = await checkGameExists(validatedUser.user.id, friendId);
+  if (existingGame) return c.json("Active game already exists", 409);
+
   const gameRequest = await sendGameRequest(
     validatedUser!.user!.id,
     friendId,
-    validatedUser!.user!.id,
+    firstMove,
   );
 
-  // h4x0rz
-  if (!gameRequest) return c.json("Attempted duplicate game request", 409);
+  if (!gameRequest) return c.json("Failed to create game", 500);
 
   return c.json({ requestId: gameRequest.id }, 201);
 });
