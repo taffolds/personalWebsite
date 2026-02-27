@@ -1,7 +1,7 @@
 import { createUser, updateNickname } from "../services/userService.js";
 import { nanoid } from "nanoid";
 import { db } from "../db/index.js";
-import { friendships } from "../db/schema.js";
+import { friendships, games } from "../db/schema.js";
 
 export async function createTestUser(googleId?: string, email?: string) {
   const uniqueId = nanoid(10);
@@ -32,4 +32,25 @@ export async function createTestFriendship(userId1: number, userId2: number) {
 
   if (!friendship[0]) throw new Error("Failed to create test friendship");
   return friendship[0];
+}
+
+export async function createTestGame(
+  userId1: number,
+  userId2: number,
+  firstMover: number,
+) {
+  const ids = [userId1, userId2].sort((a, b) => a - b);
+
+  const game = await db
+    .insert(games)
+    .values({
+      playerOneId: ids[0] as number,
+      playerTwoId: ids[1] as number,
+      firstMove: firstMover,
+      createdAt: new Date(),
+    })
+    .returning();
+
+  if (!game[0]) throw new Error("Failed to create test game");
+  return game[0];
 }

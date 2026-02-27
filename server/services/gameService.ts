@@ -84,6 +84,7 @@ export async function showAllGameRequests(userId: number) {
       requestId: gameRequests.id,
       fromUserId: fromUserId,
       fromNickname: users.nickname,
+      firstMove: users.id,
     })
     .from(gameRequests)
     .innerJoin(users, eq(fromUserId, users.id))

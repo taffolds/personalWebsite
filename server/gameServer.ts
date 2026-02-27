@@ -67,7 +67,7 @@ gameApp.post("/requests/send", async (c) => {
   // h4x0rz
   if (!gameRequest) return c.json("Attempted duplicate game request", 409);
 
-  return c.json({ message: "Game created" }, 201);
+  return c.json({ requestId: gameRequest.id }, 201);
 });
 
 gameApp.post("/requests/accept", async (c) => {
@@ -88,7 +88,7 @@ gameApp.post("/requests/accept", async (c) => {
   const startedGame = await acceptGameRequest(requestId, validatedUser.user.id);
   if (!startedGame) return c.json("Error creating game", 400); // Check this status code, server side error
 
-  return c.json(startedGame);
+  return c.json(startedGame, 201);
 });
 
 gameApp.get("/requests/incoming", async (c) => {
@@ -116,7 +116,7 @@ gameApp.get("/game/:gameId", async (c) => {
   const validateGame = await validateUserGame(validatedUser.user.id, gameId);
   if (!validateGame) return c.json("Trying to access someone else's game", 403);
   const game = await getCurrentGame(gameId);
-  if (!game) return c.json("Couldn't find game");
+  if (!game) return c.json("Couldn't find game", 404);
 
   return c.json(game);
 });
@@ -131,10 +131,10 @@ gameApp.post("/game/:gameId/move", async (c) => {
   const { move } = await c.req.json();
 
   const validateActiveGame = await checkActiveGame(gameId);
-  if (!validateActiveGame) return c.json("Game not active", 403);
+  if (!validateActiveGame) return c.json("Game not active", 409);
 
   const validateTurn = await checkTurn(validatedUser.user.id, gameId);
-  if (!validateTurn) return c.json({ error: "Not your turn", status: 403 });
+  if (!validateTurn) return c.json({ error: "Not your turn" }, 403);
 
   await playMove(validatedUser.user.id, gameId, move);
 

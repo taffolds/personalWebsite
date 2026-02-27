@@ -77,9 +77,7 @@ describe("Send friend requests", () => {
     await setNicknameTestUser(sender.id, "Karen");
     await setNicknameTestUser(receiver.id, "Helen");
 
-    const mockFn = vi.mocked(getSignedCookie);
-    mockFn.mockResolvedValue(String(sender.id));
-    //vi.mocked(getSignedCookie).mockResolvedValue(String(sender.id));
+    vi.mocked(getSignedCookie).mockResolvedValue(String(sender.id));
 
     const res = await friendshipApp.request("/requests/send", {
       method: "POST",
