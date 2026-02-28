@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import Banner from "./banner.js";
+import Banner from "../page/banner.js";
 import styles from "./fourInARow.module.css";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useUser } from "../../contexts/UserContext.js";
 
 type CellValue = null | "red" | "blue";
 
@@ -16,14 +17,16 @@ function createEmptyGame(): CellValue[][] {
 
 export function FourInARow() {
   const { gameId } = useParams<{ gameId: string }>();
+  const { profile } = useUser();
   const [loading, setLoading] = useState(true);
   const [board, setBoard] = useState<CellValue[][]>(createEmptyGame());
+  const [opponentNickname, setOpponentNickname] = useState<string>("");
   const [turn, setTurn] = useState<CellValue>();
-  const [winner, setWinner] = useState(null); // Redo this
+  const [winner, setWinner] = useState<number | null>(null); // Redo this
   const [draw, setDraw] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [validGame, setValidGame] = useState(false);
-  const location = useLocation();
+  // const location = useLocation();
 
   async function loadGame() {
     if (!gameId) {
@@ -40,6 +43,8 @@ export function FourInARow() {
     }
     const gameRes = await res.json();
     if (res.ok) {
+      setOpponentNickname(gameRes.opponentNickname);
+
       if (gameRes.status === "draw") {
         setDraw(true);
       }
@@ -116,6 +121,16 @@ export function FourInARow() {
     return null;
   }
 
+  function getWinnerDisplay() {
+    if (!winner) return null;
+
+    if (winner === profile?.id) {
+      return "You win!";
+    } else {
+      return `${opponentNickname} wins!`;
+    }
+  }
+
   return (
     <>
       <div className={styles.rotateOverlay}>
@@ -128,10 +143,16 @@ export function FourInARow() {
       {validGame ? (
         <div className={styles.container}>
           <h1>Four In a Row</h1>
+          {!winner && !draw && opponentNickname && (
+            <>
+              <p>Playing against {opponentNickname}</p>
+              <p>{turn}'s turn</p>
+            </>
+          )}
 
           {winner && (
             <>
-              <p>Winner is: </p>
+              <p>{getWinnerDisplay()}</p>
               <p>Play again? set up backend</p>
             </>
           )}

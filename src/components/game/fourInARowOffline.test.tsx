@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { FourInARow } from "./fourInARow.js";
+import { FourInARowOffline } from "./fourInARowOffline.js";
 
 vi.mock("./banner.js", () => ({
   Banner: () => <div>Mocked Banner</div>,
@@ -13,7 +13,7 @@ const clickColumn = (column: number) => {
 
 describe("Shows horizontal win", () => {
   it("detects 4 horizontals as win bottom left", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(2);
     clickColumn(2);
     clickColumn(3);
@@ -25,7 +25,7 @@ describe("Shows horizontal win", () => {
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 horizontals as win", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(0);
     clickColumn(0);
     clickColumn(1);
@@ -37,7 +37,7 @@ describe("Shows horizontal win", () => {
 
 describe("Shows vertical win", () => {
   it("detects 4 verticals as win", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(3);
     clickColumn(0);
     clickColumn(3);
@@ -49,7 +49,7 @@ describe("Shows vertical win", () => {
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 verticals as win", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(3);
     clickColumn(0);
     clickColumn(3);
@@ -61,7 +61,7 @@ describe("Shows vertical win", () => {
 
 describe("Shows falling diagonal win", () => {
   it("detects 4 falling diagonals as a win", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(6);
     clickColumn(5);
     clickColumn(5);
@@ -77,7 +77,7 @@ describe("Shows falling diagonal win", () => {
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 falling diagonals as a win", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(0);
     clickColumn(0);
     clickColumn(0);
@@ -91,7 +91,7 @@ describe("Shows falling diagonal win", () => {
 
 describe("Shows rising diagonal win", () => {
   it("detects 4 rising diagonals as a win", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(3);
     clickColumn(2);
     clickColumn(4);
@@ -106,7 +106,7 @@ describe("Shows rising diagonal win", () => {
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 rising diagonals as a win", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(3);
     clickColumn(2);
     clickColumn(4);
@@ -119,13 +119,13 @@ describe("Shows rising diagonal win", () => {
 
 describe("Makes pieces fall down to closest available cell", () => {
   it("falls all the way down when there's no pieces on the board", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(0);
     const bottomLeftCell = screen.getByTestId("5-0");
     expect(bottomLeftCell).toHaveTextContent("red");
   });
   it("falls on top of other piece", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(6);
     clickColumn(6);
     clickColumn(5);
@@ -136,7 +136,7 @@ describe("Makes pieces fall down to closest available cell", () => {
     expect(cell4_5).toHaveTextContent("blue");
   });
   it("doesn't change turns after clicking a full column", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(0);
     clickColumn(0);
     clickColumn(0);
@@ -152,7 +152,7 @@ describe("Makes pieces fall down to closest available cell", () => {
 
 describe("Asks user to play again", () => {
   it("returns play again message", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(0);
     clickColumn(0);
     clickColumn(1);
@@ -164,7 +164,7 @@ describe("Asks user to play again", () => {
     expect(gameOverMessage).toBeTruthy();
   });
   it("resets board after clicking play again", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(0);
     clickColumn(1);
     clickColumn(0);
@@ -180,7 +180,7 @@ describe("Asks user to play again", () => {
 });
 
 it("prevents user from clicking board after winner is declared", () => {
-  render(<FourInARow />);
+  render(<FourInARowOffline />);
   clickColumn(0);
   clickColumn(0);
   clickColumn(1);
@@ -199,7 +199,7 @@ it("prevents user from clicking board after winner is declared", () => {
 
 describe("Checks draw condition", () => {
   it("Asks user to play again when draw condition is met", () => {
-    render(<FourInARow />);
+    render(<FourInARowOffline />);
     clickColumn(0);
     clickColumn(1);
     clickColumn(0);

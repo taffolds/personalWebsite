@@ -72,8 +72,9 @@ export function AboutDevelopment() {
             I sent a Postman request with Cookie: id: 1 to change the nickname
             of that user, lo and behold, nothing was secure again. Lovely. I
             found that Hono had a function to sign the cookie. I set up another
-            key to sign this cookie, and now the cookie contained enough random
-            characters that no one's changing anyone else's name.
+            encryption key to sign this cookie, and now the cookie contained
+            enough random characters that no one's changing anyone else's name
+            any more.
           </p>
         </details>
         <details className={styles.section}>
@@ -85,9 +86,8 @@ export function AboutDevelopment() {
             information about a user. I needed to track a few things on my
             website to make it work. The user is the obvious central entity,
             with everything connecting to the user entity. I needed to handle
-            refresh tokens, friend requests, which users are friends with each
-            other, and sending friend requests (as well as blocking requests, in
-            case some troll discovers my site and continuously sends requests).
+            friend requests, which users are friends with each other, as well as
+            game requests and the games themselves.
           </p>
           <p>
             I also wanted to be able to view earlier games with friends, so I
@@ -101,7 +101,8 @@ export function AboutDevelopment() {
             and debug messages to the user later. Now if only I wrote it all
             down in one place, instead of scattered in word documents, comments
             in the ER diagram, in my head, etc... Solo projects have their
-            charm.
+            charm. Having modelled it out and spent some time planning, using
+            the database to map opponents names to the games became very easy.
           </p>
           <p>
             As I moved on in the project, a few columns did get altered. I also

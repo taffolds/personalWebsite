@@ -7,10 +7,7 @@ export function ProfilePage() {
   // Add debug to user if profile is loading
   // Add friend request options
   // Need a notification system when people add you
-  // Edit username
   // Should have a logout here as well as on the hamburger
-
-  // This page is begging to be divided into components
 
   const { profile, loading, refreshProfile } = useUser();
   const [newNickname, setNewNickname] = useState("");
@@ -22,14 +19,11 @@ export function ProfilePage() {
   >([]);
   const [friends, setFriends] = useState<any[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
-  const [activeGames, setActiveGames] = useState<any[]>([]);
-  const [gameRequests, setGameRequests] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (profile?.nickname) {
       loadFriendsData();
-      loadGamesData();
     }
   }, [profile]);
 
@@ -41,15 +35,6 @@ export function ProfilePage() {
 
     if (friendsRes.ok) setFriends(await friendsRes.json());
     if (incomingRes.ok) setIncomingRequests(await incomingRes.json());
-  }
-
-  async function loadGamesData() {
-    const [gameRequestsRes, activeGamesRes] = await Promise.all([
-      fetch("/api/games/requests/incoming"),
-      fetch("/api/games/user"),
-    ]);
-    if (gameRequestsRes.ok) setGameRequests(await gameRequestsRes.json());
-    if (activeGamesRes.ok) setActiveGames(await activeGamesRes.json());
   }
 
   useEffect(() => {
@@ -145,57 +130,6 @@ export function ProfilePage() {
     setSearchResults(data);
   }
 
-  async function handleSendGameRequest(friendId: number) {
-    const res = await fetch("/api/games/requests/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ friendId }),
-    });
-
-    if (!res.ok) {
-      alert("no game request sent womp womp");
-      return;
-    }
-
-    await loadGamesData();
-  }
-
-  async function handleAcceptGameRequest(requestId: number) {
-    const res = await fetch("/api/games/requests/accept", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requestId }),
-    });
-
-    if (!res.ok) {
-      alert("Couldn't create game");
-      return;
-    }
-
-    // could also use navigate to res.json().gameId
-
-    await loadGamesData();
-  }
-
-  async function handleEnterGame(gameId: number) {
-    navigate(`/fourInARow/${gameId}`);
-  }
-
-  async function handleForfeitGame(gameId: number) {
-    const res = await fetch(`/api/games/game/${gameId}/forfeit`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gameId }),
-    });
-
-    if (!res.ok) {
-      alert("didn't delete game");
-      return;
-    }
-
-    await loadGamesData();
-  }
-
   async function handleSendFriendRequest(friendId: number) {
     const res = await fetch("/api/friendship/requests/send", {
       method: "POST",
@@ -254,6 +188,11 @@ export function ProfilePage() {
           <button onClick={handleCloseUserWarning}>No</button>
         </>
       )}
+      <div>
+        <h3>
+          <a href={"/userGames"}>Go to games</a>
+        </h3>
+      </div>
 
       <div>
         <h3>Search For User</h3>
@@ -287,9 +226,6 @@ export function ProfilePage() {
           {friends.map((friend) => (
             <li key={friend.userId}>
               {friend.nickname}
-              <button onClick={() => handleSendGameRequest(friend.userId)}>
-                Send game request
-              </button>
               <button onClick={() => handleRemoveFriend(friend.userId)}>
                 Remove
               </button>
@@ -308,38 +244,6 @@ export function ProfilePage() {
               </button>
             </li>
           ))}
-        </ul>
-      </div>
-      <div>
-        <h3>Game Requests:</h3>
-        <ul>
-          {gameRequests.map((r) => (
-            <li key={r.requestId}>
-              Game with id {r.requestId}
-              <button onClick={() => handleAcceptGameRequest(r.requestId)}>
-                Accept
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div>
-        <h3>Games:</h3>
-        <ul>
-          {activeGames.map((g) => (
-            <li key={g.id}>
-              {g.nickname}
-              <button onClick={() => handleEnterGame(g.id)}>Play</button>
-              <button onClick={() => handleForfeitGame(g.id)}>Forfeit</button>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div>
-        <h3>Historic Games:</h3>
-        <ul>
-          <li>historicGames.map</li>
-          <li>select().where(ne("in_progress"))</li>
         </ul>
       </div>
     </>

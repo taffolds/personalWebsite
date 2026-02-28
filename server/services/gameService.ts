@@ -1,6 +1,6 @@
 import { db } from "../db/index.js";
 import { users, games, gameRequests } from "../db/schema.js";
-import { eq, and, ne, or, sql } from "drizzle-orm";
+import { eq, and, ne, or, sql, desc } from "drizzle-orm";
 import { checkWinner } from "../utils/winValidation.js";
 import {
   reconstructBoard,
@@ -88,6 +88,20 @@ export async function checkGameExists(
   return !!game;
 }
 
+export async function removeGameRequest(requestId: number, userId: number) {
+  const res = await db
+    .delete(gameRequests)
+    .where(
+      and(
+        or(eq(gameRequests.userId1, userId), eq(gameRequests.userId2, userId)),
+        eq(gameRequests.id, requestId),
+      ),
+    )
+    .returning({ id: gameRequests.id });
+
+  return res.length > 0;
+}
+
 export async function acceptGameRequest(requestId: number, userId: number) {
   const [request] = await db
     .select()
@@ -144,20 +158,65 @@ export async function showAllGameRequests(userId: number) {
 }
 
 export async function getUserGames(userId: number) {
+  const opponentId = sql<number>`CASE WHEN ${games.playerOneId} = ${userId} THEN ${games.playerTwoId} ELSE ${games.playerOneId} END`;
+
   const userGames = await db
-    .select()
+    .select({
+      id: games.id,
+      opponentNickname: users.nickname,
+    })
     .from(games)
+    .innerJoin(users, eq(opponentId, users.id))
     .where(
       and(
         or(eq(games.playerOneId, userId), eq(games.playerTwoId, userId)),
         eq(games.status, "in_progress"),
       ),
-    );
+    )
+    .orderBy(desc(games.lastMoveAt));
+
   return userGames;
 }
 
-export async function getCurrentGame(gameId: number) {
-  const game = await db.select().from(games).where(eq(games.id, gameId));
+export async function getHistoricGames(userId: number) {
+  const opponentId = sql<number>`CASE WHEN ${games.playerOneId} = ${userId} THEN ${games.playerTwoId} ELSE ${games.playerOneId} END`;
+
+  const historicGames = await db
+    .select({
+      id: games.id,
+      opponentNickname: users.nickname,
+    })
+    .from(games)
+    .innerJoin(users, eq(opponentId, users.id))
+    .where(
+      and(
+        or(eq(games.playerOneId, userId), eq(games.playerTwoId, userId)),
+        ne(games.status, "in_progress"),
+      ),
+    )
+    .orderBy(desc(games.lastMoveAt));
+
+  return historicGames;
+}
+
+export async function getCurrentGame(gameId: number, userId: number) {
+  const opponentId = sql<number>`CASE WHEN ${games.playerOneId} = ${userId} THEN ${games.playerTwoId} ELSE ${games.playerOneId} END`;
+  const game = await db
+    .select({
+      id: games.id,
+      playerOneId: games.playerOneId,
+      playerTwoId: games.playerTwoId,
+      firstMove: games.firstMove,
+      status: games.status,
+      moves: games.moves,
+      winnerId: games.winnerId,
+      createdAt: games.createdAt,
+      lastMoveAt: games.lastMoveAt,
+      opponentNickname: users.nickname,
+    })
+    .from(games)
+    .innerJoin(users, eq(opponentId, users.id))
+    .where(eq(games.id, gameId));
   if (!game) return null;
   return game[0];
 }

@@ -14,8 +14,11 @@ export function FrontPage() {
         </p>
         <p className={styles.section}>
           This website is a collection of my personal projects that I do for
-          fun. All source code is found here! (Note to self, don't forget to
-          actually do this...)
+          fun. All source code is found{" "}
+          <a href="https://github.com/taffolds/personalWebsite" target="_blank">
+            here
+          </a>
+          !
         </p>
         <p className={styles.section}>
           Please contact me if you find any bugs or issues! If there are

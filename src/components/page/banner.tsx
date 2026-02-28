@@ -50,7 +50,7 @@ const Banner = () => {
         ]
       : []),
     { link: "/", text: "Home" },
-    { link: "/fourInARow", text: "Four in a Row" },
+    { link: "/gameSelector", text: "Four in a Row" },
     { link: "/aboutDevelopment", text: "About Development" },
   ];
 

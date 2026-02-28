@@ -13,6 +13,8 @@ import {
   checkGameExists,
   getGameRequest,
   getSpecificGameRequest,
+  removeGameRequest,
+  getHistoricGames,
 } from "./services/gameService.js";
 import { getFriendship } from "./services/friendshipService.js";
 
@@ -90,6 +92,30 @@ gameApp.post("/requests/send", async (c) => {
   return c.json({ requestId: gameRequest.id }, 201);
 });
 
+gameApp.delete("/requests/remove", async (c) => {
+  const validatedUser = await validateUserDetails(c);
+  if ("message" in validatedUser)
+    return c.json(
+      { message: validatedUser.message },
+      validatedUser.status as any,
+    );
+
+  const requestId = await c.req.json();
+  if (!requestId) return c.json({ message: "No request id" }, 400);
+
+  const validateRequestExist = await getSpecificGameRequest(requestId);
+  if (
+    validateRequestExist!.userId1 !== validatedUser.user.id &&
+    validateRequestExist!.userId2 !== validatedUser.user.id
+  ) {
+    return c.json({ message: "Not your game request" }, 403);
+  }
+
+  const deleted = await removeGameRequest(requestId, validatedUser.user.id);
+  if (!deleted) return c.json({ message: "Request not found" }, 404);
+  return c.json({ message: "Request removed" }, 200);
+});
+
 gameApp.post("/requests/accept", async (c) => {
   const validatedUser = await validateUserDetails(c);
   if ("message" in validatedUser)
@@ -131,7 +157,7 @@ gameApp.get("/requests/incoming", async (c) => {
   return c.json(requests, 200);
 });
 
-gameApp.get("/user", async (c) => {
+gameApp.get("/active", async (c) => {
   const validatedUser = await validateUserDetails(c);
   if ("message" in validatedUser)
     return c.json(
@@ -140,6 +166,17 @@ gameApp.get("/user", async (c) => {
     );
   const userGames = await getUserGames(validatedUser.user.id);
   return c.json(userGames, 200);
+});
+
+gameApp.get("/historic", async (c) => {
+  const validatedUser = await validateUserDetails(c);
+  if ("message" in validatedUser)
+    return c.json(
+      { message: validatedUser.message },
+      validatedUser.status as any,
+    );
+  const historicGames = await getHistoricGames(validatedUser.user.id);
+  return c.json(historicGames, 200);
 });
 
 gameApp.get("/game/:gameId", async (c) => {
@@ -151,7 +188,7 @@ gameApp.get("/game/:gameId", async (c) => {
     );
   const gameIdAsString = c.req.param("gameId");
   const gameId: number = Number(gameIdAsString);
-  const game = await getCurrentGame(gameId);
+  const game = await getCurrentGame(gameId, validatedUser.user.id);
   if (!game) return c.json({ message: "Couldn't find game" }, 404);
   if (
     game.playerOneId !== validatedUser.user.id &&
@@ -175,7 +212,7 @@ gameApp.post("/game/:gameId/move", async (c) => {
 
   const { move } = await c.req.json();
 
-  const game = await getCurrentGame(gameId);
+  const game = await getCurrentGame(gameId, validatedUser.user.id);
   if (!game) return c.json({ message: "Couldn't find game" }, 404);
   if (game.status !== "in_progress")
     return c.json({ message: "Game not active" }, 409);
@@ -208,7 +245,7 @@ gameApp.patch("/game/:gameId/forfeit", async (c) => {
   const gameIdAsString = c.req.param("gameId");
   const gameId: number = Number(gameIdAsString);
 
-  const game = await getCurrentGame(gameId);
+  const game = await getCurrentGame(gameId, validatedUser.user.id);
   if (!game) return c.json({ message: "Couldn't find game" }, 404);
   if (game.status !== "in_progress")
     return c.json({ message: "Game already ended" }, 409);
