@@ -87,18 +87,18 @@ userApp.get("/logout/start", async (c) => {
 userApp.patch("/nickname", async (c) => {
   const userId = await getSignedCookie(c, cookieSecret, "user_id");
 
-  if (!userId) return c.json("Couldn't validate user", 401);
+  if (!userId) return c.json({ message: "Couldn't validate user" }, 401);
 
   const user = await getUserById(Number(userId));
 
   if (!user) {
-    return c.json("User not found", 401);
+    return c.json({ message: "User not found" }, 401);
   }
 
   const { nickname } = await c.req.json();
 
   if (!nickname) {
-    return c.json("Need a nickname", 400);
+    return c.json({ message: "Need a nickname" }, 400);
   }
 
   const res = await updateNickname(user!.id, nickname);
@@ -107,28 +107,28 @@ userApp.patch("/nickname", async (c) => {
     // consider refactoring this
     switch (res.error) {
       case "Nickname taken": // Not the biggest fan of the names either, frontend will require
-        return c.json(res.error, 409); // something a bit more fancy than this anyway
+        return c.json({ message: res.error }, 409); // something a bit more fancy than this anyway
       case "Too many characters":
-        return c.json(res.error, 400);
+        return c.json({ message: res.error }, 400);
       case "Only characters and digits":
-        return c.json(res.error, 400);
+        return c.json({ message: res.error }, 400);
       default: // Not testing this until I've refactored
         return c.json("If this pops up who knows", 500);
     }
   }
 
-  return c.json("Nickname updated", 200);
+  return c.json({ message: "Nickname updated" }, 200);
 });
 
 userApp.delete("/", async (c) => {
   const userId = await getSignedCookie(c, "user_id");
 
-  if (!userId) return c.json("Cannot delete other users", 401);
+  if (!userId) return c.json({ message: "Cannot delete other users" }, 401);
 
   const user = await getUserById(Number(userId));
 
   if (!user) {
-    return c.json("Cannot delete other users", 401);
+    return c.json({ message: "Cannot delete other users" }, 401);
   }
 
   const deletedUser = await deleteUser(user.id);

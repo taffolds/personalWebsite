@@ -29,7 +29,7 @@ describe("Search for users", () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveLength(1);
-    expect(data[0]).toBe("alpha");
+    expect(data[0].nickname).toBe("alpha");
   });
 
   it("should return empty array when no matches", async () => {
@@ -53,7 +53,7 @@ describe("Search for users", () => {
 
     expect(res.status).toBe(400);
     const data = await res.json();
-    expect(data).toContain("Search field has to contain something");
+    expect(data.message).toBe("Search field has to contain something");
   });
 
   it("should ban searching without nickname", async () => {
@@ -63,7 +63,7 @@ describe("Search for users", () => {
     const res = await friendshipApp.request("/search?query=nobody");
     expect(res.status).toBe(403);
     const data = await res.json();
-    expect(data).toContain("Need to set a nickname to access resource");
+    expect(data.message).toBe("Need to set a nickname to access resource");
   });
 });
 
@@ -84,7 +84,7 @@ describe("Send friend requests", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "Helen" }),
+      body: JSON.stringify({ friendId: receiver.id }),
     });
 
     expect(res.status).toBe(201);
@@ -103,7 +103,7 @@ describe("Send friend requests", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "oblivious" }),
+      body: JSON.stringify({ friendId: unaware.id }),
     });
 
     expect(res.status).toBe(201);
@@ -113,12 +113,12 @@ describe("Send friend requests", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "oblivious" }),
+      body: JSON.stringify({ friendId: unaware.id }),
     });
 
     expect(again.status).toBe(409);
     const data = await again.json();
-    expect(data).toContain("Attempted duplicate friend request");
+    expect(data.message).toBe("Friend request already exists");
   });
 
   it("should tell the user to have a nickname to send friend requests", async () => {
@@ -131,12 +131,12 @@ describe("Send friend requests", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "disallowed" }),
+      body: JSON.stringify({ friendId: 1 }),
     });
 
     expect(res.status).toBe(403);
     const data = await res.json();
-    expect(data).toContain("Need to set a nickname to access resource");
+    expect(data.message).toBe("Need to set a nickname to access resource");
   });
 
   it("should tell user not authenticated", async () => {
@@ -146,7 +146,7 @@ describe("Send friend requests", () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data).toContain("Not authenticated");
+    expect(data.message).toBe("Not authenticated");
   });
 });
 
@@ -169,7 +169,7 @@ describe("Pending outgoing requests", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "Darren" }),
+      body: JSON.stringify({ friendId: potentialFriend1.id }),
     });
 
     await friendshipApp.request("/requests/send", {
@@ -177,7 +177,7 @@ describe("Pending outgoing requests", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "Warren" }),
+      body: JSON.stringify({ friendId: potentialFriend2.id }),
     });
 
     const res = await friendshipApp.request("/requests/outgoing");
@@ -185,8 +185,8 @@ describe("Pending outgoing requests", () => {
 
     const data = await res.json();
     expect(data.outgoingRequests).toHaveLength(2);
-    expect(data.outgoingRequests[0]).toContain("Darren");
-    expect(data.outgoingRequests[1]).toContain("Warren");
+    expect(data.outgoingRequests[0]).toBe("Darren");
+    expect(data.outgoingRequests[1]).toBe("Warren");
   });
 
   it("Should show no outgoing requests when there are none", async () => {
@@ -211,7 +211,7 @@ describe("Pending outgoing requests", () => {
 
     expect(res.status).toBe(403);
     const data = await res.json();
-    expect(data).toContain("Need to set a nickname to access resource");
+    expect(data.message).toBe("Need to set a nickname to access resource");
   });
 
   it("should tell the user not authenticated", async () => {
@@ -219,7 +219,7 @@ describe("Pending outgoing requests", () => {
     const res = await friendshipApp.request("/requests/outgoing");
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data).toContain("Not authenticated");
+    expect(data.message).toBe("Not authenticated");
   });
 });
 
@@ -240,7 +240,7 @@ describe("Pending incoming requests", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "Maria" }),
+      body: JSON.stringify({ friendId: receiver.id }),
     });
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(receiver.id));
@@ -272,7 +272,7 @@ describe("Pending incoming requests", () => {
     const res = await friendshipApp.request("/requests/incoming");
     expect(res.status).toBe(403);
     const data = await res.json();
-    expect(data).toContain("Need to set a nickname to access resource");
+    expect(data.message).toBe("Need to set a nickname to access resource");
   });
 
   it("should tell the user not authenticated", async () => {
@@ -280,7 +280,7 @@ describe("Pending incoming requests", () => {
     const res = await friendshipApp.request("/requests/incoming");
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data).toContain("Not authenticated");
+    expect(data.message).toBe("Not authenticated");
   });
 });
 
@@ -301,7 +301,7 @@ describe("Confirm friend requests", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "Sara" }),
+      body: JSON.stringify({ friendId: receiver.id }),
     });
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(receiver.id));
@@ -343,7 +343,7 @@ describe("Confirm friend requests", () => {
 
     expect(res.status).toBe(404);
     const data = await res.json();
-    expect(data).toContain("Must have request to be friends");
+    expect(data).toBe("Must have request to be friends");
   });
 
   it("should say who do you think you are? not authenticated, that's who", async () => {
@@ -358,7 +358,7 @@ describe("Confirm friend requests", () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data).toBe("Not authenticated");
+    expect(data.message).toBe("Not authenticated");
   });
 });
 
@@ -379,7 +379,7 @@ describe("Remove friend request", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "Clara" }),
+      body: JSON.stringify({ friendId: receiver.id }),
     });
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(receiver.id));
@@ -390,7 +390,7 @@ describe("Remove friend request", () => {
     expect(requests).toHaveLength(1);
     const requestId = requests[0].requestId;
 
-    await friendshipApp.request("/requests/delete", {
+    const deletedRequest = await friendshipApp.request("/requests/delete", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -399,6 +399,10 @@ describe("Remove friend request", () => {
         requestId,
       }),
     });
+
+    expect(deletedRequest.status).toBe(200);
+    const delReqData = await deletedRequest.json();
+    expect(delReqData.message).toBe("Request deleted");
 
     const res = await friendshipApp.request("/requests/incoming");
     expect(res.status).toBe(200);
@@ -421,7 +425,7 @@ describe("Remove friend request", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "bob" }),
+      body: JSON.stringify({ friendId: bob.id }),
     });
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(bob.id));
@@ -442,7 +446,7 @@ describe("Remove friend request", () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data).toContain("Not your request to delete");
+    expect(data.message).toBe("Not your request to delete");
   });
 
   it("should tell the user they are not authenticated", async () => {
@@ -460,7 +464,7 @@ describe("Remove friend request", () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data).toContain("Not authenticated");
+    expect(data.message).toBe("Not authenticated");
   });
 });
 
@@ -484,7 +488,7 @@ describe("Display a user's friends", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "Fred" }),
+      body: JSON.stringify({ friendId: user.id }),
     });
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(friend2.id));
@@ -494,7 +498,7 @@ describe("Display a user's friends", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "Fred" }),
+      body: JSON.stringify({ friendId: user.id }),
     });
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
@@ -554,7 +558,7 @@ describe("Display a user's friends", () => {
     const res = await friendshipApp.request("/friends");
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data).toContain("Not authenticated");
+    expect(data.message).toBe("Not authenticated");
   });
 });
 
@@ -575,7 +579,7 @@ describe("Delete user", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ nickname: "Joseph" }),
+      body: JSON.stringify({ friendId: receiver.id }),
     });
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(receiver.id));
@@ -627,7 +631,7 @@ describe("Delete user", () => {
 
     expect(res.status).toBe(404);
     const data = await res.json();
-    expect(data).toContain("Friendship not found");
+    expect(data.message).toContain("Friendship not found");
   });
 
   it("should require authentication to delete friend", async () => {
@@ -642,6 +646,6 @@ describe("Delete user", () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data).toContain("Not authenticated");
+    expect(data.message).toBe("Not authenticated");
   });
 });

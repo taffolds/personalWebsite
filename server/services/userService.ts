@@ -45,7 +45,7 @@ export async function updateNickname(userId: number, newNickname: string) {
     return { success: false, error: sanitiseInput.valueOf() };
   }
 
-  const existingNickname = await getNickname(newNickname);
+  const existingNickname = await getUserByNickname(newNickname);
   if (existingNickname) {
     return { success: false, error: "Nickname taken" };
   }
@@ -63,13 +63,16 @@ function checkValidity(nickname: string): string {
   return "Success";
 }
 */
-export async function getNickname(checkName: string): Promise<string | null> {
+export async function getUserByNickname(checkName: string) {
   const [user] = await db
-    .select()
+    .select({
+      id: users.id,
+      nickname: users.nickname,
+    })
     .from(users)
     .where(eq(users.nickname, checkName));
 
-  return user?.nickname ?? null;
+  return user ?? null;
 }
 
 export async function deleteUser(userId: number) {

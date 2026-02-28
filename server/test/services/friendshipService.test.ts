@@ -22,9 +22,8 @@ describe("Send friend requests", () => {
   it("should send a friend request", async () => {
     const sender = await createTestUser();
     const receiver = await createTestUser();
-    await setNicknameTestUser(receiver.id, "bob");
 
-    const friendRequest = await sendFriendRequest(sender.id, "bob");
+    const friendRequest = await sendFriendRequest(sender.id, receiver.id);
 
     expect(friendRequest).not.toBeNull();
     expect(friendRequest!.userId1).toBe(sender.id);
@@ -35,20 +34,16 @@ describe("Send friend requests", () => {
     const sender = await createTestUser();
     const receiver = await createTestUser();
 
-    await setNicknameTestUser(sender.id, "Kelly");
-    await setNicknameTestUser(receiver.id, "Polly");
-
-    const friendRequest = await sendFriendRequest(sender.id, "Polly");
+    const friendRequest = await sendFriendRequest(sender.id, receiver.id);
     expect(friendRequest).not.toBeNull();
 
-    const duplicateRequest = await sendFriendRequest(receiver.id, "Kelly");
+    const duplicateRequest = await sendFriendRequest(receiver.id, sender.id);
     expect(duplicateRequest).toBeNull();
   });
   it("should stop you from friend requesting yourself", async () => {
     const mrLonely = await createTestUser();
-    await setNicknameTestUser(mrLonely.id, "friendMe");
 
-    await sendFriendRequest(mrLonely.id, "friendMe");
+    await sendFriendRequest(mrLonely.id, mrLonely.id);
     const noRequestsToSelf = await showAllFriendRequests(mrLonely.id);
     expect(noRequestsToSelf).toHaveLength(0);
   });
@@ -58,9 +53,8 @@ describe("Accept friend requests", () => {
   it("should accept friend request", async () => {
     const receiver = await createTestUser();
     const sender = await createTestUser(); // on purpose on bottom
-    await setNicknameTestUser(receiver.id, "John");
 
-    const friendRequest = await sendFriendRequest(sender.id, "John");
+    const friendRequest = await sendFriendRequest(sender.id, receiver.id);
     expect(friendRequest).not.toBeNull();
 
     const incomingRequests = await showAllFriendRequests(receiver.id);
@@ -87,16 +81,14 @@ describe("Accept friend requests", () => {
     const sender = await createTestUser();
     const receiver = await createTestUser();
 
-    await setNicknameTestUser(receiver.id, "Daniel");
-
-    await sendFriendRequest(sender.id, "Daniel");
+    await sendFriendRequest(sender.id, receiver.id);
     const requests = await showAllFriendRequests(receiver.id);
     await confirmFriendship(requests[0]!.requestId, receiver.id);
 
     const friends = await displayAllFriends(sender.id);
     expect(friends).toHaveLength(1);
 
-    const duplicateRequest = await sendFriendRequest(sender.id, "Daniel");
+    const duplicateRequest = await sendFriendRequest(sender.id, receiver.id);
     expect(duplicateRequest).toBeNull();
   });
 });
@@ -105,9 +97,8 @@ describe("Decline friend requests", () => {
   it("should decline friend requests", async () => {
     const user1 = await createTestUser();
     const user2 = await createTestUser();
-    await setNicknameTestUser(user2.id, "Sally");
 
-    const friendRequest = await sendFriendRequest(user1.id, "Sally");
+    const friendRequest = await sendFriendRequest(user1.id, user2.id);
     expect(friendRequest).not.toBeNull();
 
     const requests = await showAllFriendRequests(user2.id);
@@ -125,12 +116,11 @@ describe("Find friend requests", () => {
     const receiver = await createTestUser();
     const friend1 = await createTestUser();
     const friend2 = await createTestUser();
-    await setNicknameTestUser(receiver.id, "Sara");
     await setNicknameTestUser(friend1.id, "Liz");
     await setNicknameTestUser(friend2.id, "Gertrude");
 
-    await sendFriendRequest(friend1.id, "Sara");
-    await sendFriendRequest(friend2.id, "Sara");
+    await sendFriendRequest(friend1.id, receiver.id);
+    await sendFriendRequest(friend2.id, receiver.id);
 
     const friendRequests = await showAllFriendRequests(receiver.id);
 
@@ -153,23 +143,21 @@ describe("Show outgoing requests", () => {
     await setNicknameTestUser(receiver1.id, "Jack"); // and
     await setNicknameTestUser(receiver2.id, "Jill"); // went up the hill
 
-    await sendFriendRequest(sender.id, "Jack");
-    await sendFriendRequest(sender.id, "Jill");
+    await sendFriendRequest(sender.id, receiver1.id);
+    await sendFriendRequest(sender.id, receiver2.id);
 
     const outgoingRequests = await showPendingRequests(sender.id);
 
     expect(outgoingRequests).toHaveLength(2);
     expect(outgoingRequests[0]).toBe("Jack");
-    expect(outgoingRequests[1]).toBe("Jill"); // Given the order they are created
-    // Or should this be alphabetical?
+    expect(outgoingRequests[1]).toBe("Jill");
   });
 
   it("should remove an outgoing request", async () => {
     const sender = await createTestUser();
     const receiver = await createTestUser();
 
-    await setNicknameTestUser(receiver.id, "James");
-    await sendFriendRequest(sender.id, "James");
+    await sendFriendRequest(sender.id, receiver.id);
 
     const outgoingRequestsBefore = await showPendingRequests(sender.id);
     expect(outgoingRequestsBefore).toHaveLength(1);
@@ -191,7 +179,7 @@ describe("Search for friends", () => {
 
     const searchResults = await searchForUsers("Jane");
     expect(searchResults).toHaveLength(1);
-    expect(searchResults[0]).toBe("Jane");
+    expect(searchResults[0]!.nickname).toBe("Jane");
   });
 
   it("should only display people within search params", async () => {
@@ -204,7 +192,7 @@ describe("Search for friends", () => {
 
     const searchResults = await searchForUsers("Jen");
     expect(searchResults).toHaveLength(1);
-    expect(searchResults[0]).toBe("Jen");
+    expect(searchResults[0]!.nickname).toBe("Jen");
   });
 
   it("should display all users containing 'ha'", async () => {
@@ -221,9 +209,9 @@ describe("Search for friends", () => {
     const searchResults = await searchForUsers("hA");
     // return search alphabetically
     expect(searchResults).toHaveLength(3);
-    expect(searchResults[0]).toBe("Hank");
-    expect(searchResults[1]).toBe("haNNa");
-    expect(searchResults[2]).toBe("SHaNe"); // checking ordering working, lowest id, but alphabetically last
+    expect(searchResults[0]!.nickname).toBe("Hank");
+    expect(searchResults[1]!.nickname).toBe("haNNa");
+    expect(searchResults[2]!.nickname).toBe("SHaNe"); // checking ordering working, lowest id, but alphabetically last
   });
 });
 
@@ -236,8 +224,8 @@ describe("Display friends", () => {
     await setNicknameTestUser(friend1.id, "Vera");
     await setNicknameTestUser(friend2.id, "Hera");
 
-    await sendFriendRequest(sender.id, "Vera");
-    await sendFriendRequest(sender.id, "Hera");
+    await sendFriendRequest(sender.id, friend1.id);
+    await sendFriendRequest(sender.id, friend2.id);
 
     const incomingFriend1 = await showAllFriendRequests(friend1.id);
     const incomingFriend2 = await showAllFriendRequests(friend2.id);
@@ -246,20 +234,17 @@ describe("Display friends", () => {
     await confirmFriendship(incomingFriend2[0]!.requestId, friend2.id);
 
     const friendList = await displayAllFriends(sender.id);
-    // Also alphabetical
     expect(friendList).toHaveLength(2);
     expect(friendList[0]!.nickname).toBe("Hera");
     expect(friendList[1]!.nickname).toBe("Vera");
   });
 
   it("should not display others relationships", async () => {
-    // more a test to make sure I don't forget stuff
     const alice = await createTestUser();
     const bob = await createTestUser();
     const eve = await createTestUser();
 
-    await setNicknameTestUser(bob.id, "bob");
-    await sendFriendRequest(alice.id, "bob");
+    await sendFriendRequest(alice.id, bob.id);
     const req = await showAllFriendRequests(bob.id);
     await confirmFriendship(req[0]!.requestId, bob.id);
 
@@ -274,8 +259,7 @@ describe("Remove friends", () => {
     const seriouslyPetty = await createTestUser();
     const futureEnemy = await createTestUser();
 
-    await setNicknameTestUser(futureEnemy.id, "nemesis");
-    await sendFriendRequest(seriouslyPetty.id, "nemesis");
+    await sendFriendRequest(seriouslyPetty.id, futureEnemy.id);
 
     const requests = await showAllFriendRequests(futureEnemy.id);
     const requestId = requests[0]!.requestId;

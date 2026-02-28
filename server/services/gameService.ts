@@ -56,6 +56,16 @@ export async function getGameRequest(userId1: number, userId2: number) {
   return request ?? null;
 }
 
+export async function getSpecificGameRequest(requestId: number) {
+  const [request] = await db
+    .select()
+    .from(gameRequests)
+    .where(eq(gameRequests.id, requestId))
+    .limit(1);
+
+  return request ?? null;
+}
+
 export async function checkGameExists(
   userId1: number,
   userId2: number,
@@ -120,7 +130,7 @@ export async function showAllGameRequests(userId: number) {
       requestId: gameRequests.id,
       fromUserId: fromUserId,
       fromNickname: users.nickname,
-      firstMove: users.id,
+      firstMove: gameRequests.firstMove,
     })
     .from(gameRequests)
     .innerJoin(users, eq(fromUserId, users.id))
@@ -146,42 +156,17 @@ export async function getUserGames(userId: number) {
   return userGames;
 }
 
-export async function validateUserGame(userId: number, gameId: number) {
-  const game = await db
-    .select()
-    .from(games)
-    .where(
-      and(
-        or(eq(games.playerOneId, userId), eq(games.playerTwoId, userId)),
-        eq(games.id, gameId),
-      ),
-    );
-  return game;
-}
-
 export async function getCurrentGame(gameId: number) {
   const game = await db.select().from(games).where(eq(games.id, gameId));
   if (!game) return null;
   return game[0];
 }
 
-export async function checkActiveGame(gameId: number) {
-  const [game] = await db
-    .select()
-    .from(games)
-    .where(and(eq(games.id, gameId), eq(games.status, "in_progress")));
-  if (!game) return false;
-  return true;
-}
-
-export async function checkTurn(playerId: number, gameId: number) {
-  const [game] = await db.select().from(games).where(eq(games.id, gameId));
-
-  if (!game) return null;
-
-  const turnNumber = game.moves.length;
-  const firstMover = game.firstMove;
-
+export function checkTurn(
+  playerId: number,
+  turnNumber: number,
+  firstMover: number,
+) {
   if (turnNumber % 2 === 0) {
     if (firstMover === playerId) {
       return true;

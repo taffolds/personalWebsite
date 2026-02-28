@@ -17,7 +17,9 @@ export function ProfilePage() {
   const [deleteProfilePrompt, setDeleteProfilePrompt] = useState(false);
   const [isDeletingProfile, setIsDeletingProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<string[]>([]);
+  const [searchResults, setSearchResults] = useState<
+    Array<{ id: number; nickname: string }>
+  >([]);
   const [friends, setFriends] = useState<any[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<any[]>([]);
   const [activeGames, setActiveGames] = useState<any[]>([]);
@@ -194,11 +196,11 @@ export function ProfilePage() {
     await loadGamesData();
   }
 
-  async function handleSendFriendRequest(nickname: string) {
+  async function handleSendFriendRequest(friendId: number) {
     const res = await fetch("/api/friendship/requests/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nickname }),
+      body: JSON.stringify({ friendId }),
     });
 
     if (!res.ok) {
@@ -266,10 +268,10 @@ export function ProfilePage() {
         <div>
           <p>RESULTS:</p>
           <ul>
-            {searchResults.map((nickname) => (
-              <li key={nickname}>
-                {nickname}
-                <button onClick={() => handleSendFriendRequest(nickname)}>
+            {searchResults.map((user) => (
+              <li key={user.id}>
+                {user.nickname}
+                <button onClick={() => handleSendFriendRequest(user.id)}>
                   Add
                 </button>
               </li>

@@ -4,7 +4,6 @@ import {
   forfeitGame,
   showAllGameRequests,
   getUserGames,
-  validateUserGame,
   playMove,
 } from "../../services/gameService.js";
 import { createTestUser, createTestFriendship } from "../helper.js";
@@ -184,40 +183,6 @@ describe("Show all user games", () => {
 
     const dwightGames = await getUserGames(dwight.id);
     expect(dwightGames).toHaveLength(2);
-  });
-});
-
-// redundant after refactor?
-describe("Validate user game", () => {
-  it("should validate users game", async () => {
-    const abigail = await createTestUser(); // abby
-    const gabriela = await createTestUser(); // gabby
-
-    await createTestFriendship(abigail.id, gabriela.id);
-    const gameRequest = await sendGameRequest(
-      abigail.id,
-      gabriela.id,
-      abigail.id,
-    );
-    const game = await acceptGameRequest(gameRequest!.id, gabriela.id);
-
-    const validatedGame = await validateUserGame(abigail.id, game!.id);
-
-    expect(validatedGame).not.toBeNull();
-  });
-  it("should not validate someone else's game", async () => {
-    const bill = await createTestUser();
-    const jill = await createTestUser();
-    const will = await createTestUser();
-
-    await createTestFriendship(bill.id, jill.id);
-
-    const gameRequest = await sendGameRequest(bill.id, jill.id, bill.id);
-    const game = await acceptGameRequest(gameRequest!.id, jill.id);
-
-    const validatedGame = await validateUserGame(will.id, game!.id);
-
-    expect(validatedGame).toHaveLength(0);
   });
 });
 

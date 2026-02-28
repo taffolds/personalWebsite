@@ -1,3 +1,9 @@
+.intro {
+  text-align: justify;
+  line-height: 1.5;
+  font-size: 1.25rem;
+}
+
 .container {
   padding: 16px;
   margin: 0 auto;
@@ -28,6 +34,12 @@
   .container {
     padding-left: 50px;
     padding-right: 50px;
+  }
+
+  .intro {
+    text-align: justify;
+    line-height: 1.5;
+    font-size: 1.5rem;
   }
 
   .section p {

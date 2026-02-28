@@ -176,7 +176,7 @@ describe("change nicknames: Patch /nickname", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toContain("Nickname updated");
+    expect(body.message).toContain("Nickname updated");
   });
 
   it("should tell the user nickname already taken", async () => {
@@ -200,7 +200,7 @@ describe("change nicknames: Patch /nickname", () => {
     expect(res.status).toBe(409);
 
     const errorMessage = await res.json();
-    expect(errorMessage).toContain("Nickname taken");
+    expect(errorMessage.message).toContain("Nickname taken");
   });
 
   it("should tell the user off for not entering anything", async () => {
@@ -219,7 +219,7 @@ describe("change nicknames: Patch /nickname", () => {
     expect(res.status).toBe(400);
 
     const errorMessage = await res.json();
-    expect(errorMessage).toContain("Need a nickname");
+    expect(errorMessage.message).toContain("Need a nickname");
   });
 
   it("should display error too many characters", async () => {
@@ -243,7 +243,7 @@ describe("change nicknames: Patch /nickname", () => {
     expect(res.status).toBe(400);
 
     const errorMessage = await res.json();
-    expect(errorMessage).toContain("Too many characters");
+    expect(errorMessage.message).toContain("Too many characters");
   });
 
   it("should display error only char digits", async () => {
@@ -267,7 +267,7 @@ describe("change nicknames: Patch /nickname", () => {
     expect(res.status).toBe(400);
 
     const errorMessage = await res.json();
-    expect(errorMessage).toBe("Only characters and digits");
+    expect(errorMessage.message).toBe("Only characters and digits");
   });
 
   it("detects some funny business", async () => {
@@ -284,13 +284,11 @@ describe("change nicknames: Patch /nickname", () => {
     expect(res.status).toBe(401);
 
     const errorMessage = await res.json();
-    expect(errorMessage).toBe("Couldn't validate user");
+    expect(errorMessage.message).toBe("Couldn't validate user");
   });
 });
 
-// 204 for Deleted
 describe("delete user: Delete /", () => {
-  // is this really a separate endpoint? think about it
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -315,6 +313,6 @@ describe("delete user: Delete /", () => {
     expect(res.status).toBe(401);
 
     const body = await res.json();
-    expect(body).toBe("Cannot delete other users");
+    expect(body.message).toBe("Cannot delete other users");
   });
 });

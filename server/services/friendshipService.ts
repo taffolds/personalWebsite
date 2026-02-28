@@ -2,6 +2,7 @@ import { db } from "../db/index.js";
 import { friendRequests, friendships, users } from "../db/schema.js";
 import { eq, and, ne, or, ilike, asc, sql } from "drizzle-orm";
 import { checkValidity } from "../utils/inputValidation.js";
+import { getUserById } from "./userService.js";
 
 interface FriendRequestInterface {
   id: number;
@@ -20,9 +21,9 @@ interface FriendshipInterface {
 
 export async function sendFriendRequest(
   requestedBy: number,
-  sentTo: string,
+  sentTo: number,
 ): Promise<FriendRequestInterface | null> {
-  const findFriend = await findUserByNickname(sentTo);
+  const findFriend = await getUserById(sentTo);
   if (!findFriend) return null;
 
   if (!requestedBy || !findFriend.id) return null;
@@ -137,6 +138,23 @@ export async function removeFriendRequest(requestId: number, userId: number) {
   }
 }
 
+export async function getFriendRequest(userId1: number, userId2: number) {
+  const ids = [userId1, userId2].sort((a, b) => a - b);
+
+  const [request] = await db
+    .select()
+    .from(friendRequests)
+    .where(
+      and(
+        eq(friendRequests.userId1, ids[0]!),
+        eq(friendRequests.userId2, ids[1]!),
+      ),
+    )
+    .limit(1);
+
+  return request ?? null;
+}
+
 export async function showAllFriendRequests(userId: number) {
   const fromUserId = sql<number>`CASE WHEN ${friendRequests.userId1} = ${userId} THEN ${friendRequests.userId2} ELSE ${friendRequests.userId1} END`;
 
@@ -180,12 +198,15 @@ export async function searchForUsers(nickname: string) {
   if (sanitised !== "Success") throw Error(sanitised);
 
   const res = await db
-    .select()
+    .select({
+      id: users.id,
+      nickname: users.nickname,
+    })
     .from(users)
     .where(ilike(users.nickname, `%${nickname}%`))
     .orderBy(asc(users.nickname));
 
-  return res.map((r) => r.nickname);
+  return res;
 }
 
 export async function displayAllFriends(userId: number) {
@@ -202,6 +223,20 @@ export async function displayAllFriends(userId: number) {
     .orderBy(asc(users.nickname));
 
   return res;
+}
+
+export async function getFriendship(userId1: number, userId2: number) {
+  const ids = [userId1, userId2].sort((a, b) => a - b);
+
+  const [friendship] = await db
+    .select()
+    .from(friendships)
+    .where(
+      and(eq(friendships.userId1, ids[0]!), eq(friendships.userId2, ids[1]!)),
+    )
+    .limit(1);
+
+  return friendship ?? null;
 }
 
 export async function removeFriendship(

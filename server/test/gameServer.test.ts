@@ -92,6 +92,8 @@ describe("Send game request", () => {
     });
 
     expect(friendReqBack.status).toBe(409);
+    const frbData = await friendReqBack.json();
+    expect(frbData.message).toBe("Game request already exists");
   });
   it("should not allow sending request when active game exists", async () => {
     const user1 = await createTestUser();
@@ -143,6 +145,8 @@ describe("Send game request", () => {
     });
 
     expect(duplicateRequest.status).toBe(409);
+    const drData = await duplicateRequest.json();
+    expect(drData.message).toBe("Active game already exists");
   });
   it("should require friendship for game request", async () => {
     const user1 = await createTestUser();
@@ -163,6 +167,8 @@ describe("Send game request", () => {
     });
 
     expect(res.status).toBe(403);
+    const data = await res.json();
+    expect(data.message).toBe("No active friendship");
   });
   it("should require being logged in", async () => {
     const user = await createTestUser();
@@ -181,6 +187,8 @@ describe("Send game request", () => {
     });
 
     expect(res.status).toBe(401);
+    const data = await res.json();
+    expect(data.message).toBe("Not authenticated");
   });
   it("requires a destination friend for the request", async () => {
     const user1 = await createTestUser();
@@ -218,6 +226,8 @@ describe("Send game request", () => {
       }),
     });
     expect(res.status).toBe(403);
+    const data = await res.json();
+    expect(data.message).toBe("Cannot send request to yourself");
   });
 
   it("should allow you to send a request, and be playerTwo", async () => {
@@ -349,6 +359,8 @@ describe("Accept game request", () => {
     });
 
     expect(acceptRequest.status).toBe(403);
+    const arData = await acceptRequest.json();
+    expect(arData.message).toBe("Not your game request");
   });
   it("stops you from accepting requests that you've sent", async () => {
     const user1 = await createTestUser();
@@ -384,6 +396,8 @@ describe("Accept game request", () => {
     });
 
     expect(acceptRequest.status).toBe(403);
+    const arData = await acceptRequest.json();
+    expect(arData.message).toBe("Can't accept your own requests");
   });
 });
 
@@ -412,6 +426,8 @@ describe("Incoming game requests", () => {
     });
 
     expect(sentReq.status).toBe(201);
+    const sentReqData = await sentReq.json();
+    const reqId = sentReqData.requestId;
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user2.id));
 
@@ -421,8 +437,8 @@ describe("Incoming game requests", () => {
 
     const incoming = await res.json();
     expect(incoming).toHaveLength(1);
-    //expect(incoming[0].requestId).toBe(outgoing[0].requestId);
-    //expect(incoming[0].firstMover).toBe(outgoing[0].firstMove);
+    expect(incoming[0].requestId).toBe(reqId);
+    expect(incoming[0].firstMove).toBe(user2.id);
     expect(incoming[0].fromNickname).toBe("hedda");
     expect(incoming[0].fromUserId).toBe(user1.id);
   });
@@ -433,6 +449,8 @@ describe("Incoming game requests", () => {
     const res = await gameApp.request("/requests/incoming");
 
     expect(res.status).toBe(404);
+    const data = await res.json();
+    expect(data.message).toBe("User not found");
   });
   it("should return 200 OK if no requests", async () => {
     const user = await createTestUser();
@@ -498,7 +516,7 @@ describe("Current game", () => {
     expect(game.status).toBe(200);
 
     const gameData = await game.json();
-    // expect(gameData.firstMove).toBe(user1.id);
+    expect(gameData.firstMove).toBe(user1.id);
     expect(gameData.status).toBe("in_progress");
     expect(gameData.playerOneId).toBe(user1.id);
     expect(gameData.playerTwoId).toBe(user2.id);
@@ -555,7 +573,7 @@ describe("Current game", () => {
     const res = await gameApp.request(`/game/${reqGameId}`);
     expect(res.status).toBe(403);
     const data = await res.json();
-    expect(data).toContain("Trying to access someone else's game");
+    expect(data.message).toContain("Trying to access someone else's game");
   });
   it("should return error if game doesn't exist", async () => {
     const user = await createTestUser();
@@ -566,7 +584,7 @@ describe("Current game", () => {
     const res = await gameApp.request("/game/1234567890");
     expect(res.status).toBe(404);
     const data = await res.json();
-    expect(data).toContain("Couldn't find game");
+    expect(data.message).toContain("Couldn't find game");
   });
 });
 
@@ -590,6 +608,8 @@ describe("Make move", () => {
     });
 
     expect(res.status).toBe(201);
+    const data = await res.json();
+    expect(data.message).toBe("Move made");
   });
   it("should prevent move when not your turn", async () => {
     const user1 = await createTestUser();
@@ -615,7 +635,7 @@ describe("Make move", () => {
 
     expect(duplicateMove.status).toBe(403);
     const dupMovData = await duplicateMove.json();
-    expect(dupMovData.error).toContain("Not your turn");
+    expect(dupMovData.message).toBe("Not your turn");
   });
   it("should not allow strangers to make move", async () => {
     const user1 = await createTestUser();
@@ -636,7 +656,7 @@ describe("Make move", () => {
 
     expect(res.status).toBe(403);
     const data = await res.json();
-    expect(data.error).toContain("Not your game");
+    expect(data.message).toContain("Not your game");
   });
   it("should stop you from making move in inactive game", async () => {
     const user1 = await createTestUser();
@@ -660,6 +680,8 @@ describe("Make move", () => {
     });
 
     expect(illegalMove.status).toBe(409);
+    const imData = await illegalMove.json();
+    expect(imData.message).toBe("Game not active");
   });
 });
 
@@ -682,6 +704,8 @@ describe("Forfeit game", () => {
     });
 
     expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.message).toBe("Game forfeited");
   });
   it("should prevent forfeiting inactive game", async () => {
     const user1 = await createTestUser();
@@ -704,6 +728,8 @@ describe("Forfeit game", () => {
     });
 
     expect(doubleForfeit.status).toBe(409);
+    const dfData = await doubleForfeit.json();
+    expect(dfData.message).toBe("Game already ended");
   });
   it("should only allow forfeiting own games", async () => {
     const user1 = await createTestUser();
@@ -722,6 +748,8 @@ describe("Forfeit game", () => {
     });
 
     expect(res.status).toBe(403);
+    const data = await res.json();
+    expect(data.message).toBe("Not your game");
   });
   it("should return error if game isn't found", async () => {
     const user = await createTestUser();
@@ -734,5 +762,7 @@ describe("Forfeit game", () => {
     });
 
     expect(res.status).toBe(404);
+    const data = await res.json();
+    expect(data.message).toBe("Couldn't find game");
   });
 });

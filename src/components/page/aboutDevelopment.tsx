@@ -8,6 +8,16 @@ export function AboutDevelopment() {
       <Banner />
       <div className={styles.container}>
         <h1>About Development</h1>
+        <p className={styles.intro}>
+          This is the development process for my website. I have recently
+          learned how to make a React app for my exam, and I wanted to expand
+          upon the knowledge I learned there to make a website that allows you
+          to play four in a row. Funnily enough, my initial intention was to
+          just create the game, and the reason I picked TypeScript was to have
+          the ease of styling the game board in CSS. It slowly dawned on me that
+          I could turn the game into a website. I never thought coding the game
+          would be the beginning of a long full stack adventure.
+        </p>
         <details className={styles.section}>
           <summary>
             <h3>Initial Game Development</h3>
@@ -30,23 +40,40 @@ export function AboutDevelopment() {
             manually test the game by clicking the board in the browser.
           </p>
         </details>
-        <details open className={styles.section}>
+        <details className={styles.section}>
           <summary>
-            <h3>OAuth - testTxtOpen</h3>
+            <h3>OpenID, cookies and tokens</h3>
           </summary>
           <p>
             The next step was fixing OAuth. I have done login with Google
-            before, so this wasn't too difficult. The real challenge this time
-            round was storing the refresh token, and doing so safely. I have
-            been curious about encrypting user data for a while, and decided to
-            use AES-256 GCM just for the sake of being able to verify the
-            authenticity of the encrypted data. It's not like anyone is really
-            going to care about the refresh tokens on my tiny website, but it
-            was good practice (and a pain in the backside to understand). I
-            wanted to store the minimal amount of data possible from the user as
-            well, so I only requested the email and planned to use this as well
-            as the unique GoogleId to store information needed for verifying the
-            user against my database.
+            before, so this wasn't too difficult. The challenge this time round
+            was keeping the user validated for more than one hour. This was new
+            to me. At first I stored the refresh token cryptographically in my
+            database. However this resulted in making many calls to Google's API
+            to validate the user on.
+          </p>
+          <p>
+            This was maybe one of the most painful refactors I have ever done,
+            because I had spent two whole days understanding how to use my own
+            symmetric key to store users' refresh tokens safely. What would be
+            even worse than this though would be to keep useless code around
+            because I think it looks cool.
+          </p>
+          <p>
+            I decided I would issue cookies myself with Hono. On my first try, I
+            just used their normal setCookie using the stored user id in the
+            database. All seemed good, a user was validated for 30 days on my
+            website. Not only that, but if they got logged out, they could log
+            in again to the same account using their google sub to validate the
+            user in my database, and then get a new cookie for 30 days. Then I
+            looked at the payload, saw that the cookie was just id: 1.
+          </p>
+          <p>
+            I sent a Postman request with Cookie: id: 1 to change the nickname
+            of that user, lo and behold, nothing was secure again. Lovely. I
+            found that Hono had a function to sign the cookie. I set up another
+            key to sign this cookie, and now the cookie contained enough random
+            characters that no one's changing anyone else's name.
           </p>
         </details>
         <details className={styles.section}>
@@ -76,6 +103,14 @@ export function AboutDevelopment() {
             in the ER diagram, in my head, etc... Solo projects have their
             charm.
           </p>
+          <p>
+            As I moved on in the project, a few columns did get altered. I also
+            realised I don't want to implement all the functionality at once,
+            though I do want to implement it with time. As an example, being
+            able to block people won't really be that big of an issue on my
+            website, more a fun coding challenge. I reckon I'll flesh it out
+            after the semester.
+          </p>
         </details>
         <details className={styles.section}>
           <summary>
@@ -91,6 +126,44 @@ export function AboutDevelopment() {
             keep my code as clean as possible, as well as make it testable, I
             made the decision to refactor as much as possible straight away and
             plan ahead mentally for the coming interaction and game code.
+          </p>
+          <p>
+            Once I knew what the backend structure would look like for the
+            userService, and userServer, I wrote tests for for both files. Now
+            that I had the structure and tests in mind, I decided to go back to
+            test driven development for the friendship part of the app. I
+            started by writing tests for all the calls I knew my service would
+            need to do on the database. Then I wrote all the code to make these
+            tests pass in the service. Then came the controller. The magic with
+            doing TTD on an orchestration service is that you really have to
+            think about what you want the behaviour of the backend to be and
+            since I am doing the full stack for this, I could also make mental
+            as to what kind of error messages the user should receive in the
+            front end once the backend was done, as well as what they just
+            shouldn't be able access.
+          </p>
+          <p>
+            The final piece came together in a coding frenzy on the train from
+            Oslo to Bergen. Rarely do you hope the seven and a half hour train
+            ride would last a little longer so you can wrap up what you are
+            doing. It was ugly patchwork code, but now that I had all the
+            frontend and backend set up to start playing games and I knew what I
+            wanted the structure and tests to look like, I really just wanted to
+            piece it all together, even though it meant a bit of duct taping.
+            Mind you, my favourite part isn't writing the functioning code,
+            because that can be a mess and work, but the first refactor is my
+            favourite part, because now it's doing what it's meant to, just
+            better.
+          </p>
+          <p>
+            I manually tested the code by clicking on the frontend, and it all
+            was working together well. I proceeded through the same steps as
+            earlier, writing tests for the gameService. Then I made tests for
+            the gameServer. This was the chance to really check for any
+            oversights commited during the coding frenzy on the train, and make
+            sure it was robust. Having the tests in place allowed me to safely
+            refactor the game related code. Once this was done I refactored
+            tests to be more robust.
           </p>
         </details>
       </div>
