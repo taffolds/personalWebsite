@@ -74,6 +74,7 @@ userApp.get("/profile", async (c) => {
   if (!user) return c.json(null);
 
   return c.json({
+    id: user.id,
     email: user.email,
     nickname: user.nickname || null,
   });

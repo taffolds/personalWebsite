@@ -241,6 +241,20 @@ export function checkTurn(
   }
 }
 
+export async function getGameStatus(gameId: number) {
+  const [game] = await db
+    .select({
+      playerOneId: games.playerOneId,
+      playerTwoId: games.playerTwoId,
+      moves: games.moves,
+      status: games.status,
+    })
+    .from(games)
+    .where(eq(games.id, gameId));
+
+  return game ?? null;
+}
+
 export async function playMove(
   playerId: number,
   gameId: number,

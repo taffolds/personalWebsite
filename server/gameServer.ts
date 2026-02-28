@@ -15,6 +15,7 @@ import {
   getSpecificGameRequest,
   removeGameRequest,
   getHistoricGames,
+  getGameStatus,
 } from "./services/gameService.js";
 import { getFriendship } from "./services/friendshipService.js";
 
@@ -198,6 +199,37 @@ gameApp.get("/game/:gameId", async (c) => {
   }
 
   return c.json(game);
+});
+
+gameApp.get("/game/:gameId/status", async (c) => {
+  const validatedUser = await validateUserDetails(c);
+  if ("message" in validatedUser)
+    return c.json(
+      { message: validatedUser.message },
+      validatedUser.status as any,
+    );
+
+  const gameIdAsString = c.req.param("gameId");
+  const gameId: number = Number(gameIdAsString);
+
+  const gameStatus = await getGameStatus(gameId);
+
+  if (!gameStatus) return c.json({ message: "Game not found" }, 404);
+
+  if (
+    gameStatus.playerOneId !== validatedUser.user.id &&
+    gameStatus.playerTwoId !== validatedUser.user.id
+  ) {
+    return c.json({ message: "Not your game" }, 403);
+  }
+
+  return c.json(
+    {
+      moveCount: gameStatus.moves,
+      status: gameStatus.status,
+    },
+    200,
+  );
 });
 
 gameApp.post("/game/:gameId/move", async (c) => {

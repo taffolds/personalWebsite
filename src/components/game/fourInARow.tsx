@@ -12,9 +12,6 @@ function createEmptyGame(): CellValue[][] {
     .map(() => Array(7).fill(null));
 }
 
-// COLUMN: board.length = 6
-// ROW: board[0].length = 7
-
 export function FourInARow() {
   const { gameId } = useParams<{ gameId: string }>();
   const { profile } = useUser();
@@ -26,7 +23,21 @@ export function FourInARow() {
   const [draw, setDraw] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [validGame, setValidGame] = useState(false);
-  // const location = useLocation();
+  const [firstMoverId, setFirstMoverId] = useState<number | null>(null);
+  const [moveCount, setMoveCount] = useState(0);
+  const [gameStatus, setGameStatus] = useState<string>("in_progress");
+
+  function isMyTurn(
+    currentMoveCount: number,
+    firstMover: number,
+    myId: number,
+  ): boolean {
+    if (currentMoveCount % 2 === 0) {
+      return firstMover === myId;
+    } else {
+      return firstMover !== myId;
+    }
+  }
 
   async function loadGame() {
     if (!gameId) {
@@ -41,27 +52,61 @@ export function FourInARow() {
       setValidGame(false);
       return;
     }
+
     const gameRes = await res.json();
-    if (res.ok) {
-      setOpponentNickname(gameRes.opponentNickname);
 
-      if (gameRes.status === "draw") {
-        setDraw(true);
-      }
-      if (gameRes.status === "completed") {
-        setWinner(gameRes.winnerId);
-      }
+    setOpponentNickname(gameRes.opponentNickname);
+    setFirstMoverId(gameRes.firstMove);
+    setMoveCount(gameRes.moves.length);
+    setGameStatus(gameRes.status);
 
-      const reconstructered = reconstructBoard(gameRes.moves);
-      setBoard(reconstructered);
-      setValidGame(true);
-      setLoading(false);
+    if (gameRes.status === "draw") {
+      setDraw(true);
+    }
+    if (gameRes.status === "completed") {
+      setWinner(gameRes.winnerId);
+    }
+
+    const reconstructered = reconstructBoard(gameRes.moves);
+    setBoard(reconstructered);
+    setValidGame(true);
+    setLoading(false);
+  }
+
+  async function checkForUpdates() {
+    if (!gameId) return;
+
+    const res = await fetch(`/api/games/game/${gameId}/status`);
+
+    if (!res.ok) return;
+
+    const statusData = await res.json();
+
+    if (
+      statusData.moveCount !== moveCount ||
+      statusData.status !== gameStatus
+    ) {
+      await loadGame();
     }
   }
 
   useEffect(() => {
     loadGame();
   }, [gameId]);
+
+  useEffect(() => {
+    if (!validGame || !profile || !firstMoverId) return;
+    if (gameStatus !== "in_progress") return;
+
+    const myTurn = isMyTurn(moveCount, firstMoverId, profile.id);
+    if (myTurn) return;
+
+    const pollInterval = setInterval(() => {
+      checkForUpdates();
+    }, 2500);
+
+    return () => clearInterval(pollInterval);
+  }, [validGame, profile, firstMoverId, moveCount, gameStatus]);
 
   function reconstructBoard(
     moves: { moveNumber: number; column: number }[],

@@ -61,10 +61,21 @@ export function UserGames() {
     );
 
   async function handleSendGameRequest(friendId: number) {
+    console.log("Profile:", profile);
+    console.log("Profile ID:", profile?.id);
+
+    if (!profile?.id) {
+      alert("Profile not loaded");
+      return;
+    }
+
     const res = await fetch("/api/games/requests/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ friendId }),
+      body: JSON.stringify({
+        friendId: friendId,
+        firstMove: profile.id,
+      }),
     });
 
     if (!res.ok) {
