@@ -2,6 +2,7 @@ import { useUser } from "../../contexts/UserContext.js";
 import Banner from "../page/banner.js";
 import { type FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export function ProfilePage() {
   // Add debug to user if profile is loading
@@ -79,7 +80,8 @@ export function ProfilePage() {
     });
 
     if (!res.ok) {
-      alert("Failed to delete profile");
+      // @ts-ignore
+      toast.error("Failed to delete user");
       return;
     }
 
@@ -102,8 +104,12 @@ export function ProfilePage() {
 
     const data = await res.json();
 
-    if (!res.ok) {
-      console.log("Error:", data.error);
+    if (res.ok) {
+      // @ts-ignore
+      toast.success(data.message || "Success!");
+    } else {
+      // @ts-ignore
+      toast.error(data.message || "Something went wrong");
       return;
     }
     await refreshProfile();
@@ -123,7 +129,8 @@ export function ProfilePage() {
     const data = await res.json();
 
     if (!res.ok) {
-      console.log("Error: ", data.error);
+      // @ts-ignore
+      toast.error(data.message || "Something went wrong");
       return;
     }
 
@@ -137,12 +144,17 @@ export function ProfilePage() {
       body: JSON.stringify({ friendId }),
     });
 
-    if (!res.ok) {
-      alert("ffs");
+    const data = await res.json();
+
+    if (res.ok) {
+      // @ts-ignore
+      toast.success(data.message || "Friend request sent");
+      await loadFriendsData();
+    } else {
+      // @ts-ignore
+      toast.error(data.message || "Failed to send request");
       return;
     }
-
-    await loadFriendsData();
   }
 
   async function handleAcceptFriendRequest(requestId: number) {
@@ -151,7 +163,18 @@ export function ProfilePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ requestId }),
     });
-    if (res.ok) await loadFriendsData();
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // @ts-ignore
+      toast.error(data.message || "Failed to accept request");
+      return;
+    } else {
+      // @ts-ignore
+      toast.success(data.message || "Friendship created");
+      await loadFriendsData();
+    }
   }
 
   async function handleRemoveFriend(friendId: number) {
@@ -160,7 +183,18 @@ export function ProfilePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ friendId }),
     });
-    if (res.ok) await loadFriendsData();
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // @ts-ignore
+      toast.error(data.message || "Failed to remove friend");
+      return;
+    } else {
+      // @ts-ignore
+      toast.success(data.message || "Friendship removed");
+      await loadFriendsData();
+    }
   }
 
   return (
@@ -244,6 +278,12 @@ export function ProfilePage() {
               </button>
             </li>
           ))}
+        </ul>
+      </div>
+      <div>
+        <h3>Pending friend requests to others:</h3>
+        <ul>
+          <li>Well, forgot this I guess</li>
         </ul>
       </div>
     </>

@@ -171,61 +171,63 @@ export function FourInARowOffline() {
         </div>
       </div>
       <Banner />
-      <div className={styles.container}>
-        <h1>Four In a Row</h1>
-        {!winner || (!isDraw && <p>{turn}'s turn</p>)}
+      <div className={styles.wrapper}>
+        <div className={styles.container}>
+          <h1>Four In a Row</h1>
+          {!winner || (!isDraw && <p>{turn}'s turn</p>)}
 
-        {winner && (
-          <>
-            <p>Winner is {winner}</p>
-            <p onClick={() => handleNewGame()}>Play again?</p>
-          </>
-        )}
+          {winner && (
+            <>
+              <p>Winner is {winner}</p>
+              <p onClick={() => handleNewGame()}>Play again?</p>
+            </>
+          )}
 
-        {isDraw && (
-          <>
-            <p>No winner</p>
-            <p onClick={() => handleNewGame()}>Play again?</p>
-          </>
-        )}
+          {isDraw && (
+            <>
+              <p>No winner</p>
+              <p onClick={() => handleNewGame()}>Play again?</p>
+            </>
+          )}
 
-        <table className={styles.board}>
-          <tbody>
-            {board.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                {row.map((r, columnIndex) => {
-                  const dropRow =
-                    hoveredColumn !== null ? getDropRow(hoveredColumn) : null;
-                  const isHoverTarget =
-                    hoveredColumn === columnIndex && dropRow === rowIndex;
-                  return (
-                    <td
-                      key={columnIndex}
-                      className={`${styles.cells} ${isHoverTarget ? styles.hoverTarget : ""}`}
-                      style={
-                        {
-                          "--row-index": rowIndex,
-                        } as React.CSSProperties & { "--row-index": number }
-                      }
-                      data-testid={`${rowIndex}-${columnIndex}`}
-                      onClick={() => handleClick(columnIndex)}
-                      onMouseEnter={() =>
-                        !winner && setHoveredColumn(columnIndex)
-                      }
-                      onMouseLeave={() => setHoveredColumn(null)}
-                    >
-                      {r ? (
-                        <div className={styles[r]}></div>
-                      ) : (
-                        `(${rowIndex}, ${columnIndex})`
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          <table className={styles.board}>
+            <tbody>
+              {board.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  {row.map((r, columnIndex) => {
+                    const dropRow =
+                      hoveredColumn !== null ? getDropRow(hoveredColumn) : null;
+                    const isHoverTarget =
+                      hoveredColumn === columnIndex && dropRow === rowIndex;
+                    return (
+                      <td
+                        key={columnIndex}
+                        className={`${styles.cells} ${isHoverTarget ? styles.hoverTarget : ""}`}
+                        style={
+                          {
+                            "--row-index": rowIndex,
+                          } as React.CSSProperties & { "--row-index": number }
+                        }
+                        data-testid={`${rowIndex}-${columnIndex}`}
+                        onClick={() => handleClick(columnIndex)}
+                        onMouseEnter={() =>
+                          !winner && setHoveredColumn(columnIndex)
+                        }
+                        onMouseLeave={() => setHoveredColumn(null)}
+                      >
+                        {r ? (
+                          <div className={styles[r]}></div>
+                        ) : (
+                          `(${rowIndex}, ${columnIndex})`
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );

@@ -157,6 +157,26 @@ export async function showAllGameRequests(userId: number) {
   return requests;
 }
 
+export async function showOutgoingGameRequests(userId: number) {
+  const toUserId = sql<number>`CASE WHEN ${gameRequests.userId1} = ${userId} THEN ${gameRequests.userId2} ELSE ${gameRequests.userId1} END`;
+
+  const requests = await db
+    .select({
+      requestId: gameRequests.id,
+      toNickname: users.nickname,
+      firstMove: gameRequests.firstMove,
+    })
+    .from(gameRequests)
+    .innerJoin(users, eq(toUserId, users.id))
+    .where(
+      and(
+        or(eq(gameRequests.userId1, userId), eq(gameRequests.userId2, userId)),
+        eq(gameRequests.requestedBy, userId),
+      ),
+    );
+  return requests;
+}
+
 export async function getUserGames(userId: number) {
   const opponentId = sql<number>`CASE WHEN ${games.playerOneId} = ${userId} THEN ${games.playerTwoId} ELSE ${games.playerOneId} END`;
 

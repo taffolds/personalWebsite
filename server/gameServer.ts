@@ -16,6 +16,7 @@ import {
   removeGameRequest,
   getHistoricGames,
   getGameStatus,
+  showOutgoingGameRequests,
 } from "./services/gameService.js";
 import { getFriendship } from "./services/friendshipService.js";
 
@@ -101,10 +102,12 @@ gameApp.delete("/requests/remove", async (c) => {
       validatedUser.status as any,
     );
 
-  const requestId = await c.req.json();
+  const { requestId } = await c.req.json();
   if (!requestId) return c.json({ message: "No request id" }, 400);
 
   const validateRequestExist = await getSpecificGameRequest(requestId);
+  if (!validateRequestExist)
+    return c.json({ message: "Request not found" }, 404);
   if (
     validateRequestExist!.userId1 !== validatedUser.user.id &&
     validateRequestExist!.userId2 !== validatedUser.user.id
@@ -155,6 +158,17 @@ gameApp.get("/requests/incoming", async (c) => {
       validatedUser.status as any,
     );
   const requests = await showAllGameRequests(validatedUser.user.id);
+  return c.json(requests, 200);
+});
+
+gameApp.get("/requests/outgoing", async (c) => {
+  const validatedUser = await validateUserDetails(c);
+  if ("message" in validatedUser)
+    return c.json(
+      { message: validatedUser.message },
+      validatedUser.status as any,
+    );
+  const requests = await showOutgoingGameRequests(validatedUser.user.id);
   return c.json(requests, 200);
 });
 
@@ -243,6 +257,14 @@ gameApp.post("/game/:gameId/move", async (c) => {
   const gameId: number = Number(gameIdAsString);
 
   const { move } = await c.req.json();
+
+  if (typeof move !== "number" || !Number.isInteger(move)) {
+    return c.json({ message: "Invalid move format" }, 400);
+  }
+
+  if (move < 0 || move > 6) {
+    return c.json({ message: "Invalid column" }, 400);
+  }
 
   const game = await getCurrentGame(gameId, validatedUser.user.id);
   if (!game) return c.json({ message: "Couldn't find game" }, 404);

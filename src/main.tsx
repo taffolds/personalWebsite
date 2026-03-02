@@ -12,22 +12,26 @@ import { DeletedUserPage } from "./components/user/deletedUser.js";
 import { FourInARowOffline } from "./components/game/fourInARowOffline.js";
 import { GameSelector } from "./components/game/gameSelector.js";
 import { UserGames } from "./components/game/userGames.js";
+import { Toaster } from "react-hot-toast";
 
 function Application() {
   return (
-    <Routes>
-      <Route path={"/"} element={<FrontPage />} />
-      <Route path={"/gameSelector"} element={<GameSelector />} />
-      <Route path={"/userGames"} element={<UserGames />} />
-      <Route path={"/fourInARow/:gameId"} element={<FourInARow />} />
-      <Route path={"/fourInARowOffline"} element={<FourInARowOffline />} />
-      <Route path={"/aboutDevelopment"} element={<AboutDevelopment />} />
-      <Route path={"/profile"} element={<ProfilePage />} />
-      <Route path={"/login"} element={<LoginPage />} />
-      <Route path={"/logout"} element={<LogoutPage />} />
-      <Route path={"/deleted"} element={<DeletedUserPage />} />
-      <Route path={"*"} element={<NotFoundPage />} />
-    </Routes>
+    <>
+      <Toaster />
+      <Routes>
+        <Route path={"/"} element={<FrontPage />} />
+        <Route path={"/gameSelector"} element={<GameSelector />} />
+        <Route path={"/userGames"} element={<UserGames />} />
+        <Route path={"/fourInARow/:gameId"} element={<FourInARow />} />
+        <Route path={"/fourInARowOffline"} element={<FourInARowOffline />} />
+        <Route path={"/aboutDevelopment"} element={<AboutDevelopment />} />
+        <Route path={"/profile"} element={<ProfilePage />} />
+        <Route path={"/login"} element={<LoginPage />} />
+        <Route path={"/logout"} element={<LogoutPage />} />
+        <Route path={"/deleted"} element={<DeletedUserPage />} />
+        <Route path={"*"} element={<NotFoundPage />} />
+      </Routes>
+    </>
   );
 }
 

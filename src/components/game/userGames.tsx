@@ -2,12 +2,14 @@ import { useUser } from "../../contexts/UserContext.js";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Banner from "../page/banner.js";
+import toast from "react-hot-toast";
 
 export function UserGames() {
   const { profile, loading } = useUser();
   const [friends, setFriends] = useState<any[]>([]);
   const [activeGames, setActiveGames] = useState<any[]>([]);
   const [gameRequests, setGameRequests] = useState<any[]>([]);
+  const [outgoingRequests, setOutgoingRequests] = useState<any[]>([]);
   const [historicGames, setHistoricGames] = useState<any[]>([]);
   const navigate = useNavigate();
 
@@ -25,13 +27,20 @@ export function UserGames() {
   }
 
   async function loadGamesData() {
-    const [gameRequestsRes, activeGamesRes, historicGamesRes] =
-      await Promise.all([
-        fetch("/api/games/requests/incoming"),
-        fetch("/api/games/active"),
-        fetch("/api/games/historic"),
-      ]);
+    const [
+      gameRequestsRes,
+      outgoingRequestsRes,
+      activeGamesRes,
+      historicGamesRes,
+    ] = await Promise.all([
+      fetch("/api/games/requests/incoming"),
+      fetch("/api/games/requests/outgoing"),
+      fetch("/api/games/active"),
+      fetch("/api/games/historic"),
+    ]);
     if (gameRequestsRes.ok) setGameRequests(await gameRequestsRes.json());
+    if (outgoingRequestsRes.ok)
+      setOutgoingRequests(await outgoingRequestsRes.json());
     if (activeGamesRes.ok) setActiveGames(await activeGamesRes.json());
     if (historicGamesRes.ok) setHistoricGames(await historicGamesRes.json());
   }
@@ -61,11 +70,9 @@ export function UserGames() {
     );
 
   async function handleSendGameRequest(friendId: number) {
-    console.log("Profile:", profile);
-    console.log("Profile ID:", profile?.id);
-
     if (!profile?.id) {
-      alert("Profile not loaded");
+      // @ts-ignore
+      toast.error("Profile not loaded");
       return;
     }
 
@@ -78,12 +85,17 @@ export function UserGames() {
       }),
     });
 
-    if (!res.ok) {
-      alert("no game request sent womp womp");
-      return;
-    }
+    const data = await res.json();
 
-    await loadGamesData();
+    if (!res.ok) {
+      // @ts-ignore
+      toast.error(data.message || "Something went wrong");
+      return;
+    } else {
+      // @ts-ignore
+      toast.success(data.message || "Request sent");
+      await loadGamesData();
+    }
   }
 
   async function handleAcceptGameRequest(requestId: number) {
@@ -93,12 +105,37 @@ export function UserGames() {
       body: JSON.stringify({ requestId }),
     });
 
-    if (!res.ok) {
-      alert("Couldn't create game");
-      return;
-    }
+    const data = await res.json();
 
-    await loadGamesData();
+    if (!res.ok) {
+      // @ts-ignore
+      toast.error(data.message || "Something went wrong");
+      return;
+    } else {
+      // @ts-ignore
+      toast.success(data.message || "Game request accepted");
+      await loadGamesData();
+    }
+  }
+
+  async function handleRejectGameRequest(requestId: number) {
+    const res = await fetch("/api/games/requests/remove", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // @ts-ignore
+      toast.error(data.message || "Something went wrong");
+      return;
+    } else {
+      // @ts-ignore
+      toast.success(data.message || "Request removed");
+      await loadGamesData();
+    }
   }
 
   async function handleEnterGame(gameId: number) {
@@ -112,17 +149,35 @@ export function UserGames() {
       body: JSON.stringify({ gameId }),
     });
 
-    if (!res.ok) {
-      alert("didn't delete game");
-      return;
-    }
+    const data = await res.json();
 
-    await loadGamesData();
+    if (!res.ok) {
+      // @ts-ignore
+      toast.error(data.message || "Something went wrong");
+      return;
+    } else {
+      // @ts-ignore
+      toast.success(data.message || "Game forfeited");
+      await loadGamesData();
+    }
   }
 
   return (
     <>
       <Banner />
+      <div>
+        <h3>Ideas:</h3>
+        <ul>
+          <li>
+            Colours need to be easily visible, and indicate which player is
+            first and second
+          </li>
+          <li>
+            There needs to be a message to user under each tab, e.g. "no active
+            games"
+          </li>
+        </ul>
+      </div>
       <div>
         <h3>Friends:</h3>
         <ul>
@@ -138,19 +193,6 @@ export function UserGames() {
         </ul>
       </div>
       <div>
-        <h3>Game Requests:</h3>
-        <ul>
-          {gameRequests.map((r) => (
-            <li key={r.requestId}>
-              Game with id {r.requestId}
-              <button onClick={() => handleAcceptGameRequest(r.requestId)}>
-                Accept && colour
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div>
         <h3>Games:</h3>
         <ul>
           {activeGames.map((g) => (
@@ -158,6 +200,35 @@ export function UserGames() {
               {g.opponentNickname}
               <button onClick={() => handleEnterGame(g.id)}>Play</button>
               <button onClick={() => handleForfeitGame(g.id)}>Forfeit</button>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3>Game Requests:</h3>
+        <ul>
+          {gameRequests.map((r) => (
+            <li key={r.requestId}>
+              {r.fromNickname}
+              <button onClick={() => handleAcceptGameRequest(r.requestId)}>
+                Accept && colour
+              </button>
+              <button onClick={() => handleRejectGameRequest(r.requestId)}>
+                Remove request
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3>Outgoing Requests:</h3>
+        <ul>
+          {outgoingRequests.map((r) => (
+            <li key={r.requestId}>
+              {r.toNickname}
+              <button onClick={() => handleRejectGameRequest(r.requestId)}>
+                Remove request
+              </button>
             </li>
           ))}
         </ul>

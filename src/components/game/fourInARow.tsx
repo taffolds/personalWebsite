@@ -3,6 +3,7 @@ import Banner from "../page/banner.js";
 import styles from "./fourInARow.module.css";
 import { useParams } from "react-router-dom";
 import { useUser } from "../../contexts/UserContext.js";
+import toast from "react-hot-toast";
 
 type CellValue = null | "red" | "blue";
 
@@ -18,7 +19,6 @@ export function FourInARow() {
   const [loading, setLoading] = useState(true);
   const [board, setBoard] = useState<CellValue[][]>(createEmptyGame());
   const [opponentNickname, setOpponentNickname] = useState<string>("");
-  const [turn, setTurn] = useState<CellValue>();
   const [winner, setWinner] = useState<number | null>(null); // Redo this
   const [draw, setDraw] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
@@ -135,12 +135,14 @@ export function FourInARow() {
       body: JSON.stringify({ move: columnNumber }),
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      alert("move failed");
+      // @ts-ignore
+      toast.error(data.message || "Move failed");
       return;
     }
 
-    const data = await res.json();
     if (data.status === "draw") {
       setDraw(true);
       return;
@@ -184,75 +186,75 @@ export function FourInARow() {
           <p>Please rotate device</p>
         </div>
       </div>
+
       <Banner />
-      {validGame ? (
-        <div className={styles.container}>
-          <h1>Four In a Row</h1>
-          {!winner && !draw && opponentNickname && (
-            <>
-              <p>Playing against {opponentNickname}</p>
-              <p>{turn}'s turn</p>
-            </>
-          )}
+      <div className={styles.wrapper}>
+        {validGame ? (
+          <div className={styles.container}>
+            <h3>firstMove.nickname vs second.Move nickname</h3>
+            {!winner && !draw && opponentNickname && <p>player?'s turn</p>}
 
-          {winner && (
-            <>
-              <p>{getWinnerDisplay()}</p>
-              <p>Play again? set up backend</p>
-            </>
-          )}
+            {winner && (
+              <>
+                <p>{getWinnerDisplay()}</p>
+                <p>Play again? set up backend</p>
+              </>
+            )}
 
-          {draw && (
-            <>
-              <p>Draw!</p>
-              <p>Play again? set up backend</p>
-            </>
-          )}
+            {draw && (
+              <>
+                <p>Draw!</p>
+                <p>Play again? set up backend</p>
+              </>
+            )}
 
-          <table className={styles.board}>
-            <tbody>
-              {board.map((row, rowIndex) => (
-                <tr key={rowIndex}>
-                  {row.map((r, columnIndex) => {
-                    const dropRow =
-                      hoveredColumn !== null ? getDropRow(hoveredColumn) : null;
-                    const isHoverTarget =
-                      hoveredColumn === columnIndex && dropRow === rowIndex;
-                    return (
-                      <td
-                        key={columnIndex}
-                        className={`${styles.cells} ${isHoverTarget ? styles.hoverTarget : ""}`}
-                        style={
-                          {
-                            "--row-index": rowIndex,
-                          } as React.CSSProperties & { "--row-index": number }
-                        }
-                        data-testid={`${rowIndex}-${columnIndex}`}
-                        onClick={() => handleClick(columnIndex)}
-                        onMouseEnter={() =>
-                          !winner && setHoveredColumn(columnIndex)
-                        }
-                        onMouseLeave={() => setHoveredColumn(null)}
-                      >
-                        {r ? (
-                          <div className={styles[r]}></div>
-                        ) : (
-                          `(${rowIndex}, ${columnIndex})` // yuck
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <>
-          <h3>Didn't recognise game</h3>
-          <p>Get message from server?</p>
-        </>
-      )}
+            <table className={styles.board}>
+              <tbody>
+                {board.map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    {row.map((r, columnIndex) => {
+                      const dropRow =
+                        hoveredColumn !== null
+                          ? getDropRow(hoveredColumn)
+                          : null;
+                      const isHoverTarget =
+                        hoveredColumn === columnIndex && dropRow === rowIndex;
+                      return (
+                        <td
+                          key={columnIndex}
+                          className={`${styles.cells} ${isHoverTarget ? styles.hoverTarget : ""}`}
+                          style={
+                            {
+                              "--row-index": rowIndex,
+                            } as React.CSSProperties & { "--row-index": number }
+                          }
+                          data-testid={`${rowIndex}-${columnIndex}`}
+                          onClick={() => handleClick(columnIndex)}
+                          onMouseEnter={() =>
+                            !winner && setHoveredColumn(columnIndex)
+                          }
+                          onMouseLeave={() => setHoveredColumn(null)}
+                        >
+                          {r ? (
+                            <div className={styles[r]}></div>
+                          ) : (
+                            `(${rowIndex}, ${columnIndex})` // yuck
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <>
+            <h3>Didn't recognise game</h3>
+            <p>Get message from server?</p>
+          </>
+        )}
+      </div>
     </>
   );
 }
