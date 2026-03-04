@@ -39,4 +39,5 @@ const port = Number(process.env.PORT) || 3000;
 serve({
   fetch: app.fetch,
   port: port,
+  hostname: "0.0.0.0", // For mobile development
 });

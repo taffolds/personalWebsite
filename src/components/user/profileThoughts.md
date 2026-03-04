@@ -5,3 +5,12 @@
 - Have a declaration about barebones data stored
   - and some GDPR possible to delete your email
   - but I won't delete your games, unless specifically requested
+
+PROFILE FIXES
+[X] Search field for users needs to be bigger
+[X] Delete Profile deleteState shows up below browser so not visible
+[X] Delete profile prompt styling fix
+[] Check without testData to simulate empty environment
+[X] Edit nickname button styling errors
+[] Pop up styling fix
+[] Banner fat finger issues on mobile

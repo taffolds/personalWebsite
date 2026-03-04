@@ -17,7 +17,13 @@ import { Toaster } from "react-hot-toast";
 function Application() {
   return (
     <>
-      <Toaster />
+      <Toaster
+        toastOptions={{
+          style: {
+            fontFamily: "Bahnschrift, sans-serif",
+          },
+        }}
+      />
       <Routes>
         <Route path={"/"} element={<FrontPage />} />
         <Route path={"/gameSelector"} element={<GameSelector />} />

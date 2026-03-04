@@ -1,6 +1,6 @@
 /* LOCAL GLOBAL HEHEHE */
 .wrapper {
-  font-family: Bahnschrift, serif;
+  font-family: Bahnschrift, sans-serif;
   background-color: #f9fff7;
   padding-top: 10px;
   padding-left: 10px;
@@ -32,6 +32,52 @@
   border-top-right-radius: 20px;
   border-bottom-style: solid;
   border-bottom-width: 1px;
+}
+
+.dialogContainer {
+  background-color: #f2ffd6;
+  padding: 10px;
+  width: 70vw;
+  height: 15vh;
+}
+
+.dialogOptionsWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.dialogBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 5vh;
+  flex-grow: 1;
+  border-radius: 5px;
+  border-width: 1px;
+}
+
+.confirmDialogBtn {
+  background-color: #93d0ff;
+  border-color: #8aaaff;
+}
+
+.confirmDialogBtn:hover {
+  background-color: #54b6ff;
+}
+
+.cancelDialogBtn {
+  background-color: #ffffff;
+  border-color: #c8c8c8;
+}
+
+.cancelDialogBtn:hover {
+  background-color: #d5d5d5;
+}
+
+#deleteProfileDialog {
+  height: 30vh;
 }
 
 /* FRIENDS LIST */
@@ -83,6 +129,12 @@
 
 .friendsInfo {
   text-indent: 20px;
+}
+
+.noFriends {
+  /* :only-child, used to get border on bottom */
+  border-bottom: 1px solid #2e7d32;
+  padding-bottom: 5px;
 }
 
 /*  FRIEND REQUESTS */
@@ -184,10 +236,10 @@
   border-color: #157e17;
   border-style: solid;
   /*
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
 
-     */
+       */
   border-radius: 10px;
   overflow: hidden;
   transition: all 200ms ease-in-out;
@@ -255,8 +307,18 @@
   padding-top: 10px;
 }
 
+.searchFieldPadding form {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+}
+
 .searchField {
+  text-indent: 10px;
+  flex-grow: 1;
   background-color: #f3fff3;
+  height: 50px;
   border-style: solid;
   border-right-style: none;
   border-width: 1px;
@@ -265,12 +327,15 @@
   border-bottom-left-radius: 50px;
   padding: 5px;
   font-size: 1rem;
-  width: 88%;
 }
 
 .searchFieldBtn {
-  width: 30px;
-  height: 30px;
+  display: flex;
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  align-items: center;
+  justify-content: center;
   font-size: 1rem;
   border-style: solid;
   border-width: 1px;
@@ -299,18 +364,18 @@
 
 .searchWrapper:last-child {
   /*
-    border-left-style: solid;
-    border-right-style: solid;
-    border-width: 2px;
+      border-left-style: solid;
+      border-right-style: solid;
+      border-width: 2px;
 
-     */
+       */
   border-bottom-right-radius: 50px;
   border-bottom-style: solid;
   border-color: black;
 }
 
 .addUsers {
-  font-family: Bahnschrift, serif;
+  font-family: Bahnschrift, sans-serif;
   font-size: 1rem;
   border-width: 0;
   border-radius: 10%;
@@ -331,31 +396,72 @@
   margin-left: 5px;
 }
 
+/* NICKNAME */
 .nicknameContainer {
-  background-color: #bbffad;
-  border-bottom-right-radius: 50px;
+  margin-top: 20px;
+  width: auto;
+  height: 80px;
+  background-color: #c8e6c9;
+  border-radius: 20px;
+}
+
+.editNickname form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nicknameField {
+  display: flex;
+  flex-grow: 1;
+  margin-top: 20px;
+  margin-left: 15px;
+  height: 40px;
+  border-radius: 5px;
 }
 
 #nicknameToggle {
+  height: 70px;
   font-size: 1.2rem;
   background-color: #c8e6c9;
   cursor: pointer;
 }
 
+#nicknameToggle:hover {
+  background-color: #aadcab;
+}
+
 .nicknameBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: transparent;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-top: 20px;
+  height: 40px;
+  width: 60px;
   border-width: 2px;
   border-radius: 5px;
 }
 
-.nicknameBtn:hover {
-  background-color: #63d667;
+.nicknameConfirmBtn {
+  margin-left: 10px;
+  background-color: #7ddd81;
 }
 
-.nicknameBtn:active {
+.nicknameCancelBtn {
+  margin-right: 15px;
+  background-color: #e4e4e4;
 }
 
-.nicknameBtn:focus {
+.nicknameConfirmBtn:hover {
+  background-color: #4bb14e;
+}
+
+.nicknameCancelBtn:hover {
+  background-color: #b8b6b6;
 }
 
 #editTxt {
@@ -363,11 +469,13 @@
   text-decoration: underline;
 }
 
-/* LOGOUT */
+/* LOGOUT BUTTON */
 .logoutBtn {
-  font-family: Bahnschrift, serif;
+  font-family: Bahnschrift, sans-serif;
   font-size: 1.5rem;
   justify-content: center;
+  width: 40vw;
+  height: 10vh;
   background-color: #f5fce8;
   color: #000000;
   border-style: solid;
@@ -392,9 +500,11 @@
 
 /* DELETE BUTTON */
 .deleteProfileBtn {
-  font-family: Bahnschrift, serif;
+  font-family: Bahnschrift, sans-serif;
   font-size: 1.5rem;
   justify-content: center;
+  width: 50vw;
+  height: 10vh;
   background-color: #ca0e0e;
   color: #fffdf5;
   border-style: solid;
@@ -406,11 +516,11 @@
 }
 
 .deleteProfileBtn:active {
-  background-color: #ff0000 !important;
+  background-color: #b50f0f !important;
 }
 
 .deleteProfileBtn:focus {
-  background-color: #ea0505;
+  background-color: #b50f0f;
 }
 
 .deleteProfileBtn:focus:hover {
@@ -429,5 +539,34 @@
 @media (min-width: 768px) {
   .welcome {
     font-size: 3rem;
+  }
+
+  .wrapper {
+    padding-top: 50px;
+    padding-left: 50px;
+    margin-left: 100px;
+    margin-right: 100px;
+    padding-right: 50px;
+    border-top-width: 2px;
+    border-top-style: solid;
+    border-top-color: #d3e8d4;
+  }
+
+  .dialogContainer {
+    padding: 10px;
+    width: 30vw;
+    height: 12vh;
+  }
+
+  .logoutBtn {
+    width: 20vw;
+  }
+
+  .deleteProfileBtn {
+    width: 30vw;
+  }
+
+  #deleteProfileDialog {
+    height: 20vh;
   }
 }

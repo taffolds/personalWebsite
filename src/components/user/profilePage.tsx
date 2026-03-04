@@ -1,7 +1,7 @@
 import { useUser } from "../../contexts/UserContext.js";
 import Banner from "../page/banner.js";
 import styles from "./profilePage.module.css";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
@@ -14,6 +14,7 @@ interface FriendProfile {
 
 interface FakeRequest {
   requestId: number;
+  friendId: number;
   nickname: string;
 }
 
@@ -21,9 +22,15 @@ export function ProfilePage() {
   // Add debug to user if profile is loading
   // Add friend request options
   // Need a notification system when people add you
-  // Should have a logout here as well as on the hamburger
+  // Should have a logout here as well as on the
 
-  const { profile, loading, refreshProfile } = useUser();
+  // DEV VARIABLES
+  const profile = { nickname: "taffolds", email: "memail@com", id: 1 };
+  const loading = false;
+  const refreshProfile = async () => {};
+
+  // PROD VARIABLES
+  // const { profile, loading, refreshProfile } = useUser();
   const [newNickname, setNewNickname] = useState("");
   const [deleteProfilePrompt, setDeleteProfilePrompt] = useState(false);
   const [isDeletingProfile, setIsDeletingProfile] = useState(false);
@@ -38,15 +45,37 @@ export function ProfilePage() {
   const [outgoingRequests, setOutgoingRequests] = useState<any[]>([]);
   const [selector, setSelector] = useState<"received" | "sent">("received");
   const navigate = useNavigate();
+  const removeFriendDialogRef = useRef<HTMLDialogElement>(null);
+  const removeRequestDialogRef = useRef<HTMLDialogElement>(null);
+  const deleteProfileDialogRef = useRef<HTMLDialogElement>(null);
+
+  const [friendToRemove, setFriendToRemove] = useState<{
+    id: number;
+    nickname: string;
+  } | null>(null);
+
+  const [requestToRemove, setRequestToRemove] = useState<{
+    requestId: number;
+    nickname: string;
+    type: "incoming" | "outgoing";
+  } | null>(null);
 
   /*************TEST DATA***********/
 
   const [fakeUsers] = useState<FriendProfile[]>([
-    { id: 1, nickname: "fakington", friendsSince: new Date("2026-01-03") },
-    { id: 2, nickname: "gimminy", friendsSince: new Date("2025-03-05") },
-    { id: 3, nickname: "cricket", friendsSince: new Date("2023-12-19") },
+    {
+      id: 1,
+      nickname: "fakington",
+      friendsSince: new Date("2026-01-03"),
+    },
   ]);
-
+  /*
+        const [fakeUsers] = useState<FriendProfile[]>([
+            {id: 1, nickname: "fakington", friendsSince: new Date("2026-01-03")},
+            {id: 2, nickname: "gimminy", friendsSince: new Date("2025-03-05")},
+            {id: 3, nickname: "cricket", friendsSince: new Date("2023-12-19")},
+        ]);
+    */
   const [fakeSearch] = useState<FriendProfile[]>([
     { id: 4, nickname: "seymour", friendsSince: new Date("2026-01-03") },
     { id: 5, nickname: "butts", friendsSince: new Date("2025-03-05") },
@@ -60,14 +89,14 @@ export function ProfilePage() {
   ]);
 
   const [fakeIncoming] = useState<FakeRequest[]>([
-    { requestId: 1, nickname: "bob" },
-    { requestId: 2, nickname: "fred" },
-    { requestId: 3, nickname: "abigail" },
+    { requestId: 1, friendId: 10, nickname: "bob" },
+    { requestId: 2, friendId: 11, nickname: "fred" },
+    { requestId: 3, friendId: 12, nickname: "abigail" },
   ]);
 
   const [fakeOutgoing] = useState<FakeRequest[]>([
-    { requestId: 4, nickname: "geronimo" },
-    { requestId: 5, nickname: "biglongnametest" },
+    { requestId: 4, friendId: 13, nickname: "geronimo" },
+    { requestId: 5, friendId: 14, nickname: "biglongnametest" },
   ]);
 
   /************END TEST DATA**************/
@@ -101,7 +130,6 @@ export function ProfilePage() {
   if (loading) return <p>Loading profile</p>;
 
   if (!profile) return <p>Not logged in, redirecting...</p>;
-
   // DO NOT FORGET TO FIX!!
   if (!profile.nickname)
     return (
@@ -119,50 +147,79 @@ export function ProfilePage() {
       </>
     );
 
-  async function handleDeleteProfile() {
-    const res = await fetch("/api/user", {
+  const handleRemoveFriendModal = (id: number, nickname: string) => {
+    setFriendToRemove({ id, nickname });
+    removeFriendDialogRef.current?.showModal();
+  };
+
+  async function handleRemoveFriend(friendId: number) {
+    const res = await fetch("/api/friendship/friends/delete", {
       method: "DELETE",
-    });
-
-    if (!res.ok) {
-      // @ts-ignore
-      toast.error("Failed to delete user");
-      return;
-    }
-
-    setDeleteProfilePrompt(false);
-    setIsDeletingProfile(true);
-
-    await refreshProfile();
-    navigate("/deleted");
-  }
-
-  async function handleSaveNickname(event: FormEvent) {
-    event.preventDefault();
-    const res = await fetch("/api/user/nickname", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ nickname: newNickname }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ friendId }),
     });
 
     const data = await res.json();
 
     if (res.ok) {
       // @ts-ignore
-      toast.success(data.message || "Success!");
-      setNicknamePrompt(false);
+      toast.success(data.message || "Friendship removed");
+      await loadFriendsData();
     } else {
       // @ts-ignore
-      toast.error(data.message || "Something went wrong");
+      toast.error(data.message || "Failed to remove friend");
       return;
     }
-    await refreshProfile();
-    setNewNickname("");
   }
 
-  // Refresh profile page whenever a change has occurred so that friendship elements render in the right boxes
+  async function handleAcceptFriendRequest(requestId: number) {
+    const res = await fetch("/api/friendship/requests/accept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // @ts-ignore
+      toast.success(data.message || "Friendship created");
+      await loadFriendsData();
+    } else {
+      // @ts-ignore
+      toast.error(data.message || "Failed to accept request");
+      return;
+    }
+  }
+
+  const handleRemoveRequestModal = (
+    requestId: number,
+    nickname: string,
+    type: "incoming" | "outgoing",
+  ) => {
+    setRequestToRemove({ requestId, nickname, type });
+    removeRequestDialogRef.current?.showModal();
+  };
+
+  async function handleRejectFriendRequest(requestId: number) {
+    const res = await fetch("/api/friendship/requests/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // @ts-ignore
+      toast.success(data.message || "Request removed");
+      await loadFriendsData();
+    } else {
+      // @ts-ignore
+      toast.error(data.message || "Failed to remove request");
+      return;
+    }
+  }
 
   async function handleSearchForUser(event: FormEvent) {
     event.preventDefault();
@@ -198,69 +255,56 @@ export function ProfilePage() {
       await loadFriendsData();
     } else {
       // @ts-ignore
-      toast.error(data.message || "Failed to send request");
+      +toast.error(data.message || "Failed to send request");
       return;
     }
   }
 
-  async function handleAcceptFriendRequest(requestId: number) {
-    const res = await fetch("/api/friendship/requests/accept", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requestId }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      // @ts-ignore
-      toast.error(data.message || "Failed to accept request");
-      return;
-    } else {
-      // @ts-ignore
-      toast.success(data.message || "Friendship created");
-      await loadFriendsData();
-    }
-  }
-
-  async function handleRejectFriendRequest(requestId: number) {
-    const res = await fetch("/api/friendship/requests/delete", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requestId }),
+  async function handleSaveNickname(event: FormEvent) {
+    event.preventDefault();
+    const res = await fetch("/api/user/nickname", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ nickname: newNickname }),
     });
 
     const data = await res.json();
 
     if (res.ok) {
       // @ts-ignore
-      toast.success(data.message || "Request removed");
-      await loadFriendsData();
+      toast.success(data.message || "Success!");
+      setNicknamePrompt(false);
     } else {
       // @ts-ignore
-      toast.error(data.message || "Failed to remove request");
+      toast.error(data.message || "Something went wrong");
       return;
     }
+    await refreshProfile();
+    setNewNickname("");
   }
 
-  async function handleRemoveFriend(friendId: number) {
-    const res = await fetch("/api/friendship/friends/delete", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ friendId }),
-    });
+  const handleDeleteProfileModal = () => {
+    deleteProfileDialogRef.current?.showModal();
+  };
 
-    const data = await res.json();
+  async function handleDeleteProfile() {
+    const res = await fetch("/api/user", {
+      method: "DELETE",
+    });
 
     if (!res.ok) {
       // @ts-ignore
-      toast.error(data.message || "Failed to remove friend");
+      toast.error("Failed to delete user");
       return;
-    } else {
-      // @ts-ignore
-      toast.success(data.message || "Friendship removed");
-      await loadFriendsData();
     }
+
+    setDeleteProfilePrompt(false);
+    setIsDeletingProfile(true);
+
+    await refreshProfile();
+    navigate("/deleted");
   }
 
   return (
@@ -268,7 +312,8 @@ export function ProfilePage() {
       <Banner />
       <div className={styles.wrapper}>
         <h1 className={styles.welcome}>Welcome, {profile.nickname}</h1>
-        {/*
+        {
+          /*
           <div className={styles.friendsWrapper}>
               <div className={styles.sectionTitle}>
               <h3>Friends</h3>
@@ -287,24 +332,60 @@ export function ProfilePage() {
                   )))}
               </div>
           </div>
-          */}
-        <div className={styles.friendsWrapper}>
-          <div className={styles.sectionTitle}>
-            <h3>Friends</h3>
-          </div>
-          {fakeUsers.map((f) => (
-            <div key={f.id} className={styles.friendsList}>
-              <div className={styles.inlineFriendRemove}>
-                <div className={styles.friendName}>{f.nickname}</div>
-                <button className={styles.removeFriend}>❌</button>
-                {/* Don't forget to send friendId in handle click */}
+          */
+          <div className={styles.friendsWrapper}>
+            <div className={styles.sectionTitle}>
+              <h3>Friends</h3>
+            </div>
+            {fakeUsers.map((f) => (
+              <div key={f.id} className={styles.friendsList}>
+                <div className={styles.inlineFriendRemove}>
+                  <div className={styles.friendName}>{f.nickname}</div>
+                  <button
+                    className={styles.removeFriend}
+                    onClick={() => handleRemoveFriendModal(f.id, f.nickname)}
+                  >
+                    ❌
+                  </button>
+                </div>
+                <div className={`${styles.friendsInfo}`}>
+                  Friends since: {format(f.friendsSince, "MMMM do, yyyy")}
+                </div>
               </div>
-              <div className={styles.friendsInfo}>
-                Friends since: {format(f.friendsSince, "MMMM do, yyyy")}
+            ))}
+          </div>
+        }
+        <dialog ref={removeFriendDialogRef}>
+          <div className={styles.dialogContainer}>
+            <p>
+              Are you sure you want to remove {friendToRemove?.nickname} as a
+              friend?
+            </p>
+            <div className={styles.dialogOptionsWrapper}>
+              <button
+                className={`${styles.dialogBtn} ${styles.confirmDialogBtn}`}
+                onClick={() => handleRemoveFriend(friendToRemove!.id)}
+              >
+                Confirm
+              </button>
+              <button
+                className={`${styles.dialogBtn} ${styles.cancelDialogBtn}`}
+                onClick={() => removeFriendDialogRef.current?.close()}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </dialog>
+        {fakeUsers.length === 0 && (
+          <div className={`${styles.friendsList} ${styles.noFriends}`}>
+            <div className={styles.inlineFriendRemove}>
+              <div className={styles.friendName}>
+                No friends yet... Add one to see them displayed here
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
         {/* DON'T FORGET TO WRITE SOME NICE FEEDBACK TO USER IF NO REQUESTS */}
         {/* SEND A FRIEND REQUEST TO GET STARTED :) */}
         <div>
@@ -340,12 +421,52 @@ export function ProfilePage() {
                       <div className={styles.requestNickname}>{r.nickname}</div>
                     </div>
                     <div className={styles.requestInfo}>
-                      <button className={styles.reqBtn}>✅</button>
-                      <button className={styles.reqBtn}>❌</button>
+                      <button
+                        className={styles.reqBtn}
+                        onClick={() => handleAcceptFriendRequest(r.friendId)}
+                      >
+                        ✅
+                      </button>
+                      <button
+                        className={styles.reqBtn}
+                        onClick={() =>
+                          handleRemoveRequestModal(
+                            r.requestId,
+                            r.nickname,
+                            "incoming",
+                          )
+                        }
+                      >
+                        ❌
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
+              <dialog ref={removeRequestDialogRef}>
+                <div className={styles.dialogContainer}>
+                  <p>
+                    Are you sure you want to remove your friend request from{" "}
+                    {requestToRemove?.nickname}?
+                  </p>
+                  <div className={styles.dialogOptionsWrapper}>
+                    <button
+                      className={`${styles.dialogBtn} ${styles.confirmDialogBtn}`}
+                      onClick={() =>
+                        handleRejectFriendRequest(requestToRemove!.requestId)
+                      }
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      className={`${styles.dialogBtn} ${styles.cancelDialogBtn}`}
+                      onClick={() => removeRequestDialogRef.current?.close()}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </dialog>
             </div>
 
             <div
@@ -359,27 +480,46 @@ export function ProfilePage() {
                       <div className={styles.requestNickname}>{r.nickname}</div>
                     </div>
                     <div className={styles.requestInfo}>
-                      <button className={styles.reqBtn}>✅</button>
-                      <button className={styles.reqBtn}>❌</button>
+                      <button
+                        className={styles.reqBtn}
+                        onClick={() =>
+                          handleRemoveRequestModal(
+                            r.requestId,
+                            r.nickname,
+                            "outgoing",
+                          )
+                        }
+                      >
+                        ❌
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div>
-              <div>
-                {incomingRequests.map((r) => (
-                  <div key={r.requestId}>
-                    {r.fromNickname}
+              <dialog ref={removeRequestDialogRef}>
+                <div className={styles.dialogContainer}>
+                  <p>
+                    Are you sure you want to remove your friend request to{" "}
+                    {requestToRemove?.nickname}?
+                  </p>
+                  <div className={styles.dialogOptionsWrapper}>
                     <button
-                      onClick={() => handleAcceptFriendRequest(r.requestId)}
+                      className={`${styles.dialogBtn} ${styles.confirmDialogBtn}`}
+                      onClick={() =>
+                        handleRejectFriendRequest(requestToRemove!.requestId)
+                      }
                     >
-                      Accept
+                      Confirm
+                    </button>
+                    <button
+                      className={`${styles.dialogBtn} ${styles.cancelDialogBtn}`}
+                      onClick={() => removeRequestDialogRef.current?.close()}
+                    >
+                      Cancel
                     </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              </dialog>
             </div>
           </div>
         </div>
@@ -405,6 +545,7 @@ export function ProfilePage() {
                 <div key={s.id} className={styles.searchWrapper}>
                   <button
                     className={`${styles.searchDisplay}  ${styles.addUsers}`}
+                    onClick={() => handleSendFriendRequest(s.id)}
                   >
                     ➕Add
                   </button>
@@ -456,24 +597,27 @@ export function ProfilePage() {
               ✏️ <span id={styles.editTxt}>Edit nickname</span>
             </h3>
           ) : (
-            <>
-              <div>
-                <form onSubmit={handleSaveNickname}>
-                  <input
-                    value={newNickname}
-                    placeholder="Enter new nickname"
-                    onChange={(e) => setNewNickname(e.target.value)}
-                  />
-                  <button className={styles.nicknameBtn}>💾</button>
-                  <button
-                    className={styles.nicknameBtn}
-                    onClick={() => setNicknamePrompt(false)}
-                  >
-                    ❌
-                  </button>
-                </form>
-              </div>
-            </>
+            <div className={styles.editNickname}>
+              <form onSubmit={handleSaveNickname}>
+                <input
+                  className={styles.nicknameField}
+                  value={newNickname}
+                  placeholder="Enter new nickname"
+                  onChange={(e) => setNewNickname(e.target.value)}
+                />
+                <button
+                  className={`${styles.nicknameBtn} ${styles.nicknameConfirmBtn}`}
+                >
+                  💾
+                </button>
+                <button
+                  className={`${styles.nicknameBtn} ${styles.nicknameCancelBtn}`}
+                  onClick={() => setNicknamePrompt(false)}
+                >
+                  ❌
+                </button>
+              </form>
+            </div>
           )}
         </div>
         <div className={styles.sadBtns}>
@@ -481,23 +625,37 @@ export function ProfilePage() {
 
           <button
             className={styles.deleteProfileBtn}
-            onClick={() => setDeleteProfilePrompt(true)}
+            onClick={() => handleDeleteProfileModal()}
           >
             Delete profile
           </button>
+          <dialog ref={deleteProfileDialogRef}>
+            <div
+              id={styles.deleteProfileDialog}
+              className={styles.dialogContainer}
+            >
+              <p>
+                Are you sure you want to delete your profile? All your
+                information will be removed, including game history, friends
+                lists, etc.
+              </p>
+              <div className={styles.dialogOptionsWrapper}>
+                <button
+                  className={`${styles.dialogBtn} ${styles.confirmDialogBtn}`}
+                  onClick={() => handleDeleteProfile()}
+                >
+                  Confirm
+                </button>
+                <button
+                  className={`${styles.dialogBtn} ${styles.cancelDialogBtn}`}
+                  onClick={() => deleteProfileDialogRef.current?.close()}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </dialog>
         </div>
-        {deleteProfilePrompt && (
-          <>
-            <p>
-              Are you sure you want to delete your profile? All your information
-              will be removed, including game history, friends lists, etc.
-            </p>
-            <button onClick={handleDeleteProfile}>Confirm</button>
-            <button onClick={() => setDeleteProfilePrompt(false)}>
-              Cancel
-            </button>
-          </>
-        )}
       </div>
     </>
   );
