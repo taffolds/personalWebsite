@@ -1,18 +1,18 @@
 import { useUser } from "../../contexts/UserContext.js";
 import Banner from "../page/banner.js";
 import styles from "./profilePage.module.css";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import React, { type FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 
-interface FriendProfile {
+interface Friend {
   id: number;
   nickname: string;
-  friendsSince: Date;
+  friendsSince: string;
 }
 
-interface FakeRequest {
+interface FriendRequest {
   requestId: number;
   friendId: number;
   nickname: string;
@@ -20,22 +20,13 @@ interface FakeRequest {
 
 export function ProfilePage() {
   // Add debug to user if profile is loading
-  // Add friend request options
-  // Need a notification system when people add you
-  // Should have a logout here as well as on the
 
-  // DEV VARIABLES
-  const profile = { nickname: "taffolds", email: "memail@com", id: 1 };
-  const loading = false;
-  const refreshProfile = async () => {};
-
-  // PROD VARIABLES
-  // const { profile, loading, refreshProfile } = useUser();
+  const { profile, loading, refreshProfile } = useUser();
   const [newNickname, setNewNickname] = useState("");
-  const [deleteProfilePrompt, setDeleteProfilePrompt] = useState(false);
   const [isDeletingProfile, setIsDeletingProfile] = useState(false);
   const [nicknamePrompt, setNicknamePrompt] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
   const [searchResults, setSearchResults] = useState<Array<{
     id: number;
     nickname: string;
@@ -60,47 +51,6 @@ export function ProfilePage() {
     type: "incoming" | "outgoing";
   } | null>(null);
 
-  /*************TEST DATA***********/
-
-  const [fakeUsers] = useState<FriendProfile[]>([
-    {
-      id: 1,
-      nickname: "fakington",
-      friendsSince: new Date("2026-01-03"),
-    },
-  ]);
-  /*
-        const [fakeUsers] = useState<FriendProfile[]>([
-            {id: 1, nickname: "fakington", friendsSince: new Date("2026-01-03")},
-            {id: 2, nickname: "gimminy", friendsSince: new Date("2025-03-05")},
-            {id: 3, nickname: "cricket", friendsSince: new Date("2023-12-19")},
-        ]);
-    */
-  const [fakeSearch] = useState<FriendProfile[]>([
-    { id: 4, nickname: "seymour", friendsSince: new Date("2026-01-03") },
-    { id: 5, nickname: "butts", friendsSince: new Date("2025-03-05") },
-    { id: 6, nickname: "rabid", friendsSince: new Date("2023-12-19") },
-    { id: 7, nickname: "dog", friendsSince: new Date("2023-12-19") },
-    {
-      id: 8,
-      nickname: "anoeherfefteeen",
-      friendsSince: new Date("2023-12-19"),
-    },
-  ]);
-
-  const [fakeIncoming] = useState<FakeRequest[]>([
-    { requestId: 1, friendId: 10, nickname: "bob" },
-    { requestId: 2, friendId: 11, nickname: "fred" },
-    { requestId: 3, friendId: 12, nickname: "abigail" },
-  ]);
-
-  const [fakeOutgoing] = useState<FakeRequest[]>([
-    { requestId: 4, friendId: 13, nickname: "geronimo" },
-    { requestId: 5, friendId: 14, nickname: "biglongnametest" },
-  ]);
-
-  /************END TEST DATA**************/
-
   useEffect(() => {
     if (profile?.nickname) {
       loadFriendsData();
@@ -114,9 +64,18 @@ export function ProfilePage() {
       fetch("/api/friendship/requests/outgoing"),
     ]);
 
-    if (friendsRes.ok) setFriends(await friendsRes.json());
-    if (incomingRes.ok) setIncomingRequests(await incomingRes.json());
-    if (outgoingRes.ok) setOutgoingRequests(await outgoingRes.json());
+    if (friendsRes.ok) {
+      const data: Friend[] = await friendsRes.json();
+      setFriends(data);
+    }
+    if (incomingRes.ok) {
+      const data: FriendRequest[] = await incomingRes.json();
+      setIncomingRequests(data);
+    }
+    if (outgoingRes.ok) {
+      const data: FriendRequest[] = await outgoingRes.json();
+      setOutgoingRequests(data);
+    }
   }
 
   useEffect(() => {
@@ -135,15 +94,22 @@ export function ProfilePage() {
     return (
       <>
         <Banner />
-        <h1>Need to set a nickname</h1>
-        <form onSubmit={handleSaveNickname}>
-          <input
-            value={newNickname}
-            placeholder="Enter nickname"
-            onChange={(e) => setNewNickname(e.target.value)}
-          />
-          <button>Save</button>
-        </form>
+        <h3>Need to set a nickname</h3>
+        <div className={styles.editNickname}>
+          <form onSubmit={handleSaveNickname}>
+            <input
+              className={styles.nicknameField}
+              value={newNickname}
+              placeholder="Enter nickname"
+              onChange={(e) => setNewNickname(e.target.value)}
+            />
+            <button
+              className={`${styles.nicknameBtn} ${styles.nicknameConfirmBtn}`}
+            >
+              💾
+            </button>
+          </form>
+        </div>
       </>
     );
 
@@ -237,6 +203,8 @@ export function ProfilePage() {
       return;
     }
 
+    setHasSearched(true);
+
     setSearchResults(data);
   }
 
@@ -255,7 +223,7 @@ export function ProfilePage() {
       await loadFriendsData();
     } else {
       // @ts-ignore
-      +toast.error(data.message || "Failed to send request");
+      toast.error(data.message || "Failed to send request");
       return;
     }
   }
@@ -300,7 +268,6 @@ export function ProfilePage() {
       return;
     }
 
-    setDeleteProfilePrompt(false);
     setIsDeletingProfile(true);
 
     await refreshProfile();
@@ -312,49 +279,29 @@ export function ProfilePage() {
       <Banner />
       <div className={styles.wrapper}>
         <h1 className={styles.welcome}>Welcome, {profile.nickname}</h1>
-        {
-          /*
-          <div className={styles.friendsWrapper}>
-              <div className={styles.sectionTitle}>
-              <h3>Friends</h3>
-              </div>
-              <div className={styles.friendsList}>
-                  {friends.length === 0 ? (
-                      <p className={styles.emptyList}>No friends yet... Search to add one!</p>
-                  ):(
-                  friends.map((friend) => (
-                      <div key={friend.userId}>
-                          <button onClick={() => handleRemoveFriend(friend.userId)}>
-                              Remove
-                          </button>
-                          {friend.nickname}
-                      </div>
-                  )))}
-              </div>
+
+        <div className={styles.friendsWrapper}>
+          <div className={styles.sectionTitle}>
+            <h3>Friends</h3>
           </div>
-          */
-          <div className={styles.friendsWrapper}>
-            <div className={styles.sectionTitle}>
-              <h3>Friends</h3>
+          {friends.map((f) => (
+            <div key={f.id} className={styles.friendsList}>
+              <div className={styles.inlineFriendRemove}>
+                <div className={styles.friendName}>{f.nickname}</div>
+                <button
+                  className={styles.removeFriend}
+                  onClick={() => handleRemoveFriendModal(f.id, f.nickname)}
+                >
+                  ❌
+                </button>
+              </div>
+              <div className={`${styles.friendsInfo}`}>
+                Friends since: {format(f.friendsSince, "MMMM do, yyyy")}
+              </div>
             </div>
-            {fakeUsers.map((f) => (
-              <div key={f.id} className={styles.friendsList}>
-                <div className={styles.inlineFriendRemove}>
-                  <div className={styles.friendName}>{f.nickname}</div>
-                  <button
-                    className={styles.removeFriend}
-                    onClick={() => handleRemoveFriendModal(f.id, f.nickname)}
-                  >
-                    ❌
-                  </button>
-                </div>
-                <div className={`${styles.friendsInfo}`}>
-                  Friends since: {format(f.friendsSince, "MMMM do, yyyy")}
-                </div>
-              </div>
-            ))}
-          </div>
-        }
+          ))}
+        </div>
+
         <dialog ref={removeFriendDialogRef}>
           <div className={styles.dialogContainer}>
             <p>
@@ -377,7 +324,7 @@ export function ProfilePage() {
             </div>
           </div>
         </dialog>
-        {fakeUsers.length === 0 && (
+        {friends.length === 0 && (
           <div className={`${styles.friendsList} ${styles.noFriends}`}>
             <div className={styles.inlineFriendRemove}>
               <div className={styles.friendName}>
@@ -386,8 +333,7 @@ export function ProfilePage() {
             </div>
           </div>
         )}
-        {/* DON'T FORGET TO WRITE SOME NICE FEEDBACK TO USER IF NO REQUESTS */}
-        {/* SEND A FRIEND REQUEST TO GET STARTED :) */}
+
         <div>
           <div className={styles.friendReqWrap}>
             <h3 id={styles.friendReqHeader} className={styles.sectionTitle}>
@@ -398,14 +344,14 @@ export function ProfilePage() {
                 className={`${styles.selector} ${selector === "received" ? styles.selectorActive : ""}`}
                 onClick={() => setSelector("received")}
               >
-                Received ({fakeIncoming.length})
+                Received ({incomingRequests.length})
               </div>
 
               <div
                 className={`${styles.selector} ${selector === "sent" ? styles.selectorActive : ""}`}
                 onClick={() => setSelector("sent")}
               >
-                Sent ({fakeOutgoing.length})
+                Sent ({outgoingRequests.length})
               </div>
             </div>
           </div>
@@ -414,16 +360,15 @@ export function ProfilePage() {
               className={`${styles.gridTransition} ${selector === "received" ? styles.gridOpen : ""}`}
             >
               <div className={styles.gridInner}>
-                {fakeIncoming.map((r) => (
+                {incomingRequests.map((r) => (
                   <div className={styles.requestField}>
-                    {/* So tired, so sorry */}
                     <div className={styles.requestInfo}>
                       <div className={styles.requestNickname}>{r.nickname}</div>
                     </div>
                     <div className={styles.requestInfo}>
                       <button
                         className={styles.reqBtn}
-                        onClick={() => handleAcceptFriendRequest(r.friendId)}
+                        onClick={() => handleAcceptFriendRequest(r.requestId)}
                       >
                         ✅
                       </button>
@@ -442,6 +387,15 @@ export function ProfilePage() {
                     </div>
                   </div>
                 ))}
+                {incomingRequests.length === 0 && (
+                  <div className={styles.requestField}>
+                    <div className={styles.requestInfo}>
+                      <div className={styles.requestNickname}>
+                        No received friend requests...
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               <dialog ref={removeRequestDialogRef}>
                 <div className={styles.dialogContainer}>
@@ -473,9 +427,8 @@ export function ProfilePage() {
               className={`${styles.gridTransition} ${selector === "sent" ? styles.gridOpen : ""}`}
             >
               <div className={styles.gridInner}>
-                {fakeOutgoing.map((r) => (
+                {outgoingRequests.map((r) => (
                   <div className={styles.requestField}>
-                    {/* So tired, so sorry, again */}
                     <div className={styles.requestInfo}>
                       <div className={styles.requestNickname}>{r.nickname}</div>
                     </div>
@@ -495,6 +448,15 @@ export function ProfilePage() {
                     </div>
                   </div>
                 ))}
+                {outgoingRequests.length === 0 && (
+                  <div className={styles.requestField}>
+                    <div className={styles.requestInfo}>
+                      <div className={styles.requestNickname}>
+                        No sent friend requests. Send one to begin!
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               <dialog ref={removeRequestDialogRef}>
                 <div className={styles.dialogContainer}>
@@ -539,9 +501,9 @@ export function ProfilePage() {
           </form>
         </div>
         <div className={styles.searchResults}>
-          {fakeSearch && (
+          {searchResults && (
             <>
-              {fakeSearch.map((s) => (
+              {searchResults.map((s) => (
                 <div key={s.id} className={styles.searchWrapper}>
                   <button
                     className={`${styles.searchDisplay}  ${styles.addUsers}`}
@@ -558,28 +520,18 @@ export function ProfilePage() {
               ))}
             </>
           )}
-        </div>
-        {/*<div className={styles.searchResults}>
-                  {searchResults !== null && (
-                      <>
-                          {searchResults.length === 0 ? (
-                              <p>No users found...</p>
-                          ) : (
-                              searchResults.map((user) => (
-                                  (user.nickname != profile.nickname && (<div className={styles.searchWrapper} key={user.id}>
-                                      <button className={`${styles.searchDisplay}  ${styles.addUsers}`} onClick={() => handleSendFriendRequest(user.id)}>
-                                          ➕Add friend
-                                      </button>
-                                          <div className={`${styles.searchDisplay}  ${styles.searchUsers}`}>
-                                      {user.nickname}
-                                          </div>
-                                  </div>
-                              ))))
-                          )}
-                      </>
-                  )}
+          {searchResults?.length === 0 && hasSearched && (
+            <div>
+              <div className={styles.searchWrapper}>
+                <div
+                  className={`${styles.searchDisplay}  ${styles.searchUsers}`}
+                >
+                  Couldn't find any users...
+                </div>
               </div>
-              */}
+            </div>
+          )}
+        </div>
 
         <a href={"/userGames"}>
           <div id={styles.games} className={styles.sectionTitle}>
@@ -621,7 +573,9 @@ export function ProfilePage() {
           )}
         </div>
         <div className={styles.sadBtns}>
-          <button className={styles.logoutBtn}>Logout</button>
+          <a href={"api/user/logout/start"}>
+            <button className={styles.logoutBtn}>Logout</button>
+          </a>
 
           <button
             className={styles.deleteProfileBtn}

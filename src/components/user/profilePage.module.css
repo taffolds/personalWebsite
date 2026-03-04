@@ -34,6 +34,27 @@
   border-bottom-width: 1px;
 }
 
+dialog {
+  padding: 0;
+  border-radius: 10px;
+  border-style: solid;
+  border-color: #0f5113;
+  transition: background-color 500ms ease-in-out;
+}
+
+dialog[open]::backdrop {
+  animation: fade-in 400ms forwards;
+}
+
+@keyframes fade-in {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+}
+
 .dialogContainer {
   background-color: #f2ffd6;
   padding: 10px;
@@ -91,10 +112,19 @@
   background-color: #f8ffdf;
   border-left: 1px solid #2e7d32;
   border-right: 1px solid #2e7d32;
+  transition: background-color 100ms ease-in-out;
 }
 
 .friendsList:nth-child(even) {
   background-color: #ecf4d2;
+}
+
+.friendsList:hover {
+  background-color: #c0c69e;
+}
+
+.friendsList:nth-child(even):hover {
+  background-color: #b8bfa1;
 }
 
 .friendsList:first-child {
@@ -121,10 +151,12 @@
 }
 
 .removeFriend {
+  margin-top: 10px;
   font-size: 1.5rem;
   display: flex;
   background-color: transparent;
   border: none;
+  cursor: pointer;
 }
 
 .friendsInfo {
@@ -221,13 +253,30 @@
   display: flex;
   justify-content: space-between;
   flex-direction: row;
+  transition: background-color 50ms ease-in-out;
 }
 
-.requestArray[data-active-tab="received"] .requestField:nth-child(odd) {
+.requestField:hover {
+  background-color: #ffe68a !important;
+}
+
+.requestArray[data-active-tab="received"]
+  .gridOpen
+  .requestField:nth-child(odd) {
   background-color: #fff3c4;
 }
 
-.requestArray[data-active-tab="sent"] .requestField:nth-child(even) {
+.requestArray[data-active-tab="received"]
+  .gridOpen
+  .requestField:nth-child(even) {
+  background-color: #fff9dd;
+}
+
+.requestArray[data-active-tab="sent"] .gridOpen .requestField:nth-child(odd) {
+  background-color: #fff9dd;
+}
+
+.requestArray[data-active-tab="sent"] .gridOpen .requestField:nth-child(even) {
   background-color: #fff3c4;
 }
 
@@ -235,11 +284,6 @@
   background-color: #fff9dd;
   border-color: #157e17;
   border-style: solid;
-  /*
-      border-top-left-radius: 5px;
-      border-top-right-radius: 5px;
-
-       */
   border-radius: 10px;
   overflow: hidden;
   transition: all 200ms ease-in-out;
@@ -253,14 +297,6 @@
 
 .gridOpen {
   grid-template-rows: 1fr;
-}
-
-.gridOpen .requestField:nth-child(odd) {
-  background-color: #fff3c4;
-}
-
-.gridOpen .requestField:nth-child(even) {
-  background-color: #fff9dd;
 }
 
 .gridOpen .requestField:first-child {
@@ -287,6 +323,7 @@
   border-width: 0;
   padding: 2px;
   font-size: 1.5rem;
+  cursor: pointer;
 }
 
 /* GAMES LINK */
@@ -344,6 +381,11 @@
   background-color: #d4fffd;
   border-top-right-radius: 50px;
   border-bottom-right-radius: 50px;
+  cursor: pointer;
+}
+
+.searchFieldBtn:hover {
+  background-color: #7ee4db;
 }
 
 .searchWrapper {
@@ -480,6 +522,7 @@
   color: #000000;
   border-style: solid;
   border-radius: 10px;
+  cursor: pointer;
 }
 
 .logoutBtn:hover {
@@ -509,6 +552,7 @@
   color: #fffdf5;
   border-style: solid;
   border-radius: 10px;
+  cursor: pointer;
 }
 
 .deleteProfileBtn:hover {
@@ -527,6 +571,12 @@
   background-color: #ff0000;
 }
 
+#deleteProfileDialog {
+  padding-left: 20px;
+  padding-right: 20px;
+  height: 20vh;
+}
+
 .sadBtns {
   display: flex;
   flex-direction: column;
@@ -542,7 +592,7 @@
   }
 
   .wrapper {
-    padding-top: 50px;
+    padding-top: 20px;
     padding-left: 50px;
     margin-left: 100px;
     margin-right: 100px;
@@ -567,6 +617,9 @@
   }
 
   #deleteProfileDialog {
-    height: 20vh;
+    padding-left: 50px;
+    padding-right: 50px;
+    width: 50vw;
+    height: 15vh;
   }
 }

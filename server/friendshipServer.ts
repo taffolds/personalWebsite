@@ -111,7 +111,7 @@ friendshipApp.get("/requests/outgoing", async (c) => {
       validatedUser.status as any,
     );
   const outgoingRequests = await showPendingRequests(validatedUser.user.id);
-  return c.json({ outgoingRequests: outgoingRequests }, 200);
+  return c.json(outgoingRequests, 200);
 });
 
 friendshipApp.get("/requests/incoming", async (c) => {
@@ -134,8 +134,7 @@ friendshipApp.post("/requests/accept", async (c) => {
     );
 
   const { requestId } = await c.req.json();
-  if (!requestId)
-    return c.json({ message: "Need to send have a requestId" }, 400);
+  if (!requestId) return c.json({ message: "Need a requestId" }, 400);
 
   const requests = await showAllFriendRequests(validatedUser.user.id);
   const request = requests.find((r) => r.requestId === requestId);

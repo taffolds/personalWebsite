@@ -161,9 +161,8 @@ export async function showAllFriendRequests(userId: number) {
   const requests = await db
     .select({
       requestId: friendRequests.id,
-      fromUserId: fromUserId,
-      fromNickname: users.nickname,
-      createdAt: friendRequests.createdAt,
+      friendId: fromUserId,
+      nickname: users.nickname,
     })
     .from(friendRequests)
     .innerJoin(users, eq(fromUserId, users.id))
@@ -184,13 +183,17 @@ export async function showPendingRequests(userId: number) {
   const friendId = sql<number>`CASE WHEN ${friendRequests.userId1} = ${userId} THEN ${friendRequests.userId2} ELSE ${friendRequests.userId1} END`;
 
   const pendingRequests = await db
-    .select({ nickname: users.nickname })
+    .select({
+      requestId: friendRequests.id,
+      friendId: friendId,
+      nickname: users.nickname,
+    })
     .from(friendRequests)
     .innerJoin(users, eq(friendId, users.id))
     .where(eq(friendRequests.requestedBy, userId))
     .orderBy(asc(users.nickname));
 
-  return pendingRequests.map((r) => r.nickname);
+  return pendingRequests;
 }
 
 export async function searchForUsers(nickname: string) {
@@ -214,8 +217,9 @@ export async function displayAllFriends(userId: number) {
 
   const res = await db
     .select({
-      userId: friendId,
+      id: friendId,
       nickname: users.nickname,
+      friendsSince: friendships.createdAt,
     })
     .from(friendships)
     .innerJoin(users, eq(friendId, users.id))
