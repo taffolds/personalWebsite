@@ -278,7 +278,15 @@ export function ProfilePage() {
     <>
       <Banner />
       <div className={styles.wrapper}>
-        <h1 className={styles.welcome}>Welcome, {profile.nickname}</h1>
+        {profile.nickname === "caroline" ? (
+          <div className={styles.easterEggContainer}>
+            <div className={styles.heart}>
+              <div className={styles.easterEgg}>Caroline</div>
+            </div>
+          </div>
+        ) : (
+          <h1 className={styles.welcome}>Welcome, {profile.nickname}</h1>
+        )}
 
         <div className={styles.friendsWrapper}>
           <div className={styles.sectionTitle}>
