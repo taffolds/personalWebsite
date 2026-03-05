@@ -25,29 +25,10 @@ nav {
 
 .topbar {
   width: 100%;
-  height: 3em;
+  height: 50px;
   padding-bottom: 7px;
   align-items: center;
   justify-content: space-between;
-}
-
-.sidebar {
-  height: 100vh;
-  width: 4em;
-  max-width: 20%;
-}
-
-.sidebar ul {
-  max-width: 200px;
-}
-
-.sidebar li {
-  min-width: 20%;
-}
-
-.sidebar .menuLinks {
-  transform: scale(1);
-  transition-duration: 10ms;
 }
 
 .menuToggle {
@@ -118,16 +99,19 @@ nav {
 }
 
 .menuLinks {
+  font-family: Bahnschrift, sans-serif;
   position: absolute;
-  top: 5vw;
-  left: 5vw;
-  width: 85vw;
+  top: 60px;
+  left: 40px;
+  width: auto;
+  height: auto;
+  max-height: 60vh;
+  overflow-y: auto;
   margin: 0 auto;
-  padding: 0;
-  padding-top: 1.25em;
+  padding: 10px;
   background-color: #e8f5e9;
   border: 2px solid #a5d6a7;
-  border-radius: 8px;
+  border-radius: 30px;
   opacity: 0;
   transform: scale(0);
   transform-origin: top left;
@@ -137,6 +121,16 @@ nav {
     transform 500ms ease-in;
 }
 
+.menuLinks li:last-child a {
+  background-color: #ffd0d0;
+  border-radius: 30px;
+  color: #000000;
+}
+
+.menuLinks li:last-child:active {
+  background-color: #e85656;
+}
+
 .menuLinks.show {
   opacity: 1;
   transform: scale(1);
@@ -144,8 +138,10 @@ nav {
 
 nav a {
   display: block;
-  padding: 0.25em;
-  font-size: 1rem;
+  font-size: 2rem;
+  padding: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
   font-weight: 700;
   color: #2e7d32;
   text-decoration: none;
@@ -155,35 +151,65 @@ nav a:hover,
 nav a:focus,
 nav a:active {
   background-color: #c8e6c9;
+  border-radius: 30px;
   text-decoration: underline;
 }
 
 .active {
+  border-radius: 30px;
+  text-indent: 10px;
+  height: 40px;
   background-color: #81c784;
   color: #f1f8e9;
 }
 
 .userSection a {
   font-family: Arial, sans-serif;
-  font-size: 1rem;
-  padding-right: 1rem;
-  padding-top: 0.5rem;
+  font-size: 1.5rem;
+  padding-right: 10px;
+  padding-top: 20px;
 }
 
 @media (min-width: 768px) {
+  .active {
+    border-radius: 60px;
+  }
+
   nav {
     padding-top: 0.7rem;
     padding-bottom: 1rem;
   }
 
   nav a {
-    padding: 0.5em;
-    font-size: 1.25rem;
+    padding: 20px;
+    font-size: 3rem;
   }
 
   .userSection a {
     font-size: 2rem;
     padding-right: 2rem;
     padding-top: 1rem;
+  }
+
+  .menuLinks {
+    top: 60px;
+    left: 40px;
+    width: 600px;
+    height: auto;
+    margin: 0 auto;
+    padding: 10px;
+    background-color: #e8f5e9;
+    border: 2px solid #a5d6a7;
+    border-radius: 60px;
+  }
+
+  .menuLinks li:last-child a {
+    border-radius: 60px;
+  }
+
+  nav a:hover,
+  nav a:focus,
+  nav a:active {
+    border-radius: 60px;
   }
 }

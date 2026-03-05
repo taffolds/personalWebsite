@@ -167,6 +167,96 @@ export function AboutDevelopment() {
             tests to be more robust.
           </p>
         </details>
+        <details className={styles.section}>
+          <summary>
+            <h3>Frontend</h3>
+          </summary>
+          <p>
+            I'd started some minor frontend design on the homepage and the page
+            that you are currently reading. This was so that it wouldn't be feel
+            like a massive undertaking to do all the frontend from scratch once
+            I had finished up the backend. Four in a row had been styled right
+            from the beginning, as that was the original intention with the
+            website.
+          </p>
+          <p>
+            The first first real hurdle came in how to display friend requests
+            to users without using a lot of space, or having unnecessarily long
+            descriptions of the functionality. There was also the matter of not
+            using convoluted backend language like incoming and outgoing. I
+            looked at different UIs, and landed on using a requests header, with
+            two tabs that you could choose from, received or sent. I wanted
+            there to be smooth transitions between the two tabs. This was a
+            struggle that took multiple hours to work out, but it was absolutely
+            worth it.
+          </p>
+          <p>
+            I also wanted the information to be displayed to the user in a
+            coherent fashion. For minor feedback, I used react-hot-toast to give
+            user feedback. For bigger actions, like removing a friend, I used
+            the dialog tag, to prevent the user from accidentally commiting an
+            action that they didn't intend. I also spent a while looking for
+            ideas on how to make the buttons obvious in their actions for the
+            user. I read that you should use neutral colours for cancel
+            functions, and saw that the buttons I liked the most had a blue
+            tint.
+          </p>
+          <p>
+            I wanted the user to be able to easily navigate the page as well. I
+            have used CSS hover on both clickable items, as well as on displayed
+            friends so that the user can easily distinguish where their cursor
+            is. I also used a subtle colour difference using nth-child to
+            decorate every other friend element in a slightly different shade to
+            increase legibility.
+          </p>
+          <p>
+            The colour schemes are partial madness if you ever look at the CSS.
+            I have changed the colour using the built in colour picker on my
+            IDE, clicked a colour, and seen if it looked like a matching colour
+            to the rest of the website. I am happy with how the colours turned
+            out
+          </p>
+          <p>
+            One of my main areas of focus was to make the website look appealing
+            on mobile phones. In this day and age, the most likely place that
+            someone will access the website is on the fly. It was surprisingly
+            easy to make a functional frontend for larger screens when you
+            started with the mobile layout first. It made the layout decision
+            making process be as intuitive as possible.
+          </p>
+        </details>
+        <details className={styles.section}>
+          <summary>
+            <h3>Final Thoughts</h3>
+          </summary>
+          <p>
+            It was incredibly satisfying to build a whole codebase from scratch.
+            Working out all the functionality in the start, and then sticking to
+            my plan has been very rewarding, especially as I started to see the
+            results. It was fun working out the backend architecture, and
+            fleshing that out properly.
+          </p>
+          <p>
+            I really enjoyed doing TDD for parts of the project, especially
+            setting up the friendship service and controller. It forced me to
+            think about how I want my backend to interact, as well as helping me
+            to really understand the architecture of the whole website. I had
+            the frontend in mind whilst setting it up. I also enjoyed the
+            process of refactoring tests and code together as they both
+            developed. It made me really have to have a solid picture of what
+            the codebase was doing, as well as telling me if I had made a
+            mistake in my code when refactoring.
+          </p>
+          <p>
+            The biggest reward came when I was designing the frontend. As I was
+            setting up the frontend, I realised I was missing a couple of
+            endpoints. For starters, I didn't have to wait for someone else to
+            implement the endpoint to have the functionality I wanted. Secondly,
+            since I now knew the architecture, I could put together a
+            functioning endpoint in the backend really fast, and go back to what
+            I was designing in the frontend.
+          </p>
+        </details>
       </div>
     </>
   );

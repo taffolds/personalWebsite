@@ -8,6 +8,7 @@ import { useUser } from "../../contexts/UserContext.js";
 
 const Banner = () => {
   const { profile } = useUser();
+  // const profile = {nickname: "OOOOOOOOOOOOOOO", email: "memail@com", id: 1};
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const isGamePage = location.pathname.startsWith("/fourInARow");
@@ -43,23 +44,16 @@ const Banner = () => {
   }, [isGamePage]);
 
   const navigation = [
-    ...(isGamePage
-      ? [
-          profile
-            ? { link: "/profile", text: "Profile" }
-            : { link: "/login", text: "Login" },
-        ]
-      : []),
+    profile
+      ? { link: "/profile", text: "Profile" }
+      : { link: "/login", text: "Login" },
     { link: "/", text: "Home" },
     { link: "/gameSelector", text: "Four in a Row" },
     { link: "/aboutDevelopment", text: "About Development" },
   ];
 
   return (
-    <nav
-      ref={targetRef}
-      className={`${styles.nav} ${isGamePage ? styles.sidebar : styles.topbar}`}
-    >
+    <nav ref={targetRef} className={`${styles.nav} ${styles.topbar}`}>
       <button className={styles.menuToggle} onClick={toggle}>
         <span className={`${styles.menu} ${isOpen ? styles.cross : ""}`}></span>
       </button>
@@ -88,10 +82,11 @@ const Banner = () => {
           {profile ? (
             !isProfilePage && (
               <NavLink to="/profile">
-                {/*Need a better greeting, either username, or something else than email if no email is set*/}
-                {/* Another tidbit, how long of a username can I actually display in the banner? Maybe it's
-                      Hello, longUsern...*/}
-                Hello, {profile.nickname}
+                {profile.nickname ? (
+                  <div>Hello, {profile.nickname}</div>
+                ) : (
+                  <div>Welcome!</div>
+                )}
               </NavLink>
             )
           ) : !isLoginPage ? (
