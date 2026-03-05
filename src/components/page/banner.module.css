@@ -121,13 +121,13 @@ nav {
     transform 500ms ease-in;
 }
 
-.menuLinks li:last-child a {
+.logoutField {
   background-color: #ffd0d0;
   border-radius: 30px;
   color: #000000;
 }
 
-.menuLinks li:last-child:active {
+.logoutField:active {
   background-color: #e85656;
 }
 

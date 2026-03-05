@@ -73,7 +73,9 @@ const Banner = () => {
         ))}
         {profile && (
           <li>
-            <a href={"api/user/logout/start"}>Logout</a>
+            <a className={styles.logoutField} href={"api/user/logout/start"}>
+              Logout
+            </a>
           </li>
         )}
       </ul>
