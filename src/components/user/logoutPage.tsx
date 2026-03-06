@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import Banner from "../page/banner.js";
+import styles from "./logoutPage.module.css";
 
 export function LogoutPage() {
   useEffect(() => {
@@ -11,8 +13,11 @@ export function LogoutPage() {
 
   return (
     <>
-      <h1>You have been logged out</h1>
-      <p>Redirecting to homepage</p>
+      <Banner />
+      <div className={styles.wrapper}>
+        <h1>You have been logged out</h1>
+        <p>Redirecting to homepage</p>
+      </div>
     </>
   );
 }

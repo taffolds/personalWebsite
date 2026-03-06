@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import Banner from "../page/banner.js";
+import { useUser } from "../../contexts/UserContext.js";
+import styles from "./deletedUser.module.css";
 
 export function DeletedUserPage() {
+  const { profile } = useUser();
   const [timeLeft, setTimeLeft] = useState(30);
+
+  if (profile) return (window.location.href = "/");
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -21,11 +26,13 @@ export function DeletedUserPage() {
   return (
     <>
       <Banner />
-      <h1>You have deleted your user</h1>
-      <p>Redirecting to home page in {timeLeft}</p>
-      <p>
-        <a href={"/"}>Go now</a>
-      </p>
+      <div className={styles.wrapper}>
+        <h3>You have deleted your user</h3>
+        <p>Redirecting to home page in {timeLeft}</p>
+        <p>
+          <a href={"/"}>Go now</a>
+        </p>
+      </div>
     </>
   );
 }

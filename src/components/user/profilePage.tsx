@@ -94,21 +94,27 @@ export function ProfilePage() {
     return (
       <>
         <Banner />
-        <h3>Need to set a nickname</h3>
-        <div className={styles.editNickname}>
-          <form onSubmit={handleSaveNickname}>
-            <input
-              className={styles.nicknameField}
-              value={newNickname}
-              placeholder="Enter nickname"
-              onChange={(e) => setNewNickname(e.target.value)}
-            />
-            <button
-              className={`${styles.nicknameBtn} ${styles.nicknameConfirmBtn}`}
-            >
-              💾
-            </button>
-          </form>
+        <div className={styles.wrapper}>
+          <h3>Need to set a nickname</h3>
+          <p>
+            Welcome to my page. You can play Four in a Row here, but first you
+            will need to create a nickname.
+          </p>
+          <div className={styles.editNickname}>
+            <form onSubmit={handleSaveNickname}>
+              <input
+                className={styles.nicknameField}
+                value={newNickname}
+                placeholder="Enter nickname"
+                onChange={(e) => setNewNickname(e.target.value)}
+              />
+              <button
+                className={`${styles.nicknameBtn} ${styles.nicknameConfirmBtn}`}
+              >
+                💾
+              </button>
+            </form>
+          </div>
         </div>
       </>
     );
@@ -258,7 +264,7 @@ export function ProfilePage() {
   };
 
   async function handleDeleteProfile() {
-    const res = await fetch("/api/user", {
+    const res = await fetch("/api/user/delete", {
       method: "DELETE",
     });
 

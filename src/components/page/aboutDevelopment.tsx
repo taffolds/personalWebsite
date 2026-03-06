@@ -224,6 +224,17 @@ export function AboutDevelopment() {
             started with the mobile layout first. It made the layout decision
             making process be as intuitive as possible.
           </p>
+          <p>
+            I did unfortunately accrue some technical debt in the frontend in
+            trying to get this deployed in a reasonable time frame. A lot of the
+            frontend is begging for a good refactor. I tried to structure the
+            code in such a manner that I can easily pick up the sections in the
+            future so that I can refactor them. I am also aware that my commits
+            are very big, often commiting a finished page in one commit. Even
+            though the commit is big, the work done to achieve the styling has
+            happened over several days and iterations, just that all the changes
+            have been local. I didn't want to commit pages with styling issues.
+          </p>
         </details>
         <details className={styles.section}>
           <summary>

@@ -7,6 +7,7 @@
   margin-left: 10px;
   margin-right: 10px;
   margin-top: -2px;
+  margin-bottom: 50px;
   padding-right: 10px;
   border-top-width: 2px;
   border-top-style: solid;
@@ -545,11 +546,11 @@ dialog[open]::backdrop {
   font-size: 1.5rem;
   justify-content: center;
   width: 40vw;
-  height: 10vh;
+  height: 8vh;
   background-color: #f5fce8;
   color: #000000;
   border-style: solid;
-  border-radius: 10px;
+  border-radius: 50px;
   cursor: pointer;
 }
 
@@ -575,11 +576,11 @@ dialog[open]::backdrop {
   font-size: 1.5rem;
   justify-content: center;
   width: 50vw;
-  height: 10vh;
+  height: 8vh;
   background-color: #ca0e0e;
   color: #fffdf5;
   border-style: solid;
-  border-radius: 10px;
+  border-radius: 50px;
   cursor: pointer;
 }
 
@@ -646,11 +647,11 @@ dialog[open]::backdrop {
   }
 
   .logoutBtn {
-    width: 20vw;
+    width: 15vw;
   }
 
   .deleteProfileBtn {
-    width: 30vw;
+    width: 20vw;
   }
 
   #deleteProfileDialog {
@@ -658,5 +659,15 @@ dialog[open]::backdrop {
     padding-right: 50px;
     width: 50vw;
     height: 15vh;
+  }
+}
+
+@media (min-width: 1200px) {
+  .wrapper {
+    width: 600px;
+    padding-top: 20px;
+    padding-left: 200px;
+    padding-right: 200px;
+    margin: auto;
   }
 }

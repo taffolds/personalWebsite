@@ -14,7 +14,7 @@ Make CSS mobile friendly from start!
 [X] Create a board for the game
 [X] Make circular holes instead of squares for pieces
 [X] Make pieces look like more than just a solid colour
-[] Animate pieces falling from top of board to final position
+[X] Animate pieces falling from top of board to final position
 [] Animate a win
 [] Remove transparent from .cells once done debugging
 [] When entering a game, make only last piece fall

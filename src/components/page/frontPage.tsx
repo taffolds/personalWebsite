@@ -22,10 +22,13 @@ export function FrontPage() {
         </p>
         <p className={styles.section}>
           Please contact me if you find any bugs or issues! If there are
-          layout/interface problems, do not hesitate to contact me here:{" "}
-          <a href={"mailto:thomasltellefsen@gmail.com"}>
-            thomasltellefsen@gmail.com
-          </a>
+          layout/interface problems, you can also let me know. I'm available
+          here:{" "}
+          <p>
+            <a href={"mailto:thomasltellefsen@gmail.com"}>
+              thomasltellefsen@gmail.com
+            </a>
+          </p>
         </p>
       </div>
     </>

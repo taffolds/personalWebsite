@@ -33,15 +33,10 @@ const Banner = () => {
   const targetRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     if (targetRef.current) {
-      if (isGamePage) {
-        document.body.style.marginTop = "0px";
-        document.body.style.marginLeft = targetRef.current.offsetWidth + "px";
-      } else {
-        document.body.style.marginLeft = "0px";
-        document.body.style.marginTop = targetRef.current.offsetHeight + "px";
-      }
+      document.body.style.marginLeft = "0px";
+      document.body.style.marginTop = targetRef.current.offsetHeight + "px";
     }
-  }, [isGamePage]);
+  }, []);
 
   const navigation = [
     profile
