@@ -9,20 +9,21 @@ Where are they created? Profile page? Separate page? Load from four in a row pag
 What about cycling through games? There are some architectural and layout concerns.
 Start with the duct tape, refactor later
 
-[] Only allow one active game per friendship
+[X] Only allow one active game per friendship
 [] Games expire after 3 days of no moves
 [] Last to make move is winner
 [] Counter for user? Implement in frontend
-[] Games start when game request accepted
-[] Delete game request entry when game accepted/declined
-[] Games are either inProgress, completed, draw, or forfeited
+[x] Games start when game request accepted
+[x] Delete game request entry when game accepted/declined
+[x] Games are either inProgress, completed, draw, or forfeited
 [] Set up cron job for expired game requests
-[] If Alice sends game request to Bob, then Bob sends game request to Alice, automatically start game
+[x] If Alice sends game request to Bob, then Bob sends game request to Alice, automatically start game
+[x] Solved with modals, above is bad UI when choosing turns
 
-[] Display all games a user has participated in, and with whom they had the game
-[] Make front end display without game numbers, but show which players had the game
-[] If numbers, order by dateCreated, and number in for loop/map
-[] Delete all associated games when a user requests to have their info deleted
+[x] Display all games a user has participated in, and with whom they had the game
+[x] Make front end display without game numbers, but show which players had the game
+[x] If numbers, order by dateCreated, and number in for loop/map
+[x] Delete all associated games when a user requests to have their info deleted
 
 Just realised if I want historic moves, I can add a column to the "games" table called "firstMover", then in the JSON
 array store the move numbers. This will allow:
@@ -32,3 +33,4 @@ log games
 easy to cycle through moves in order in react
 
 [] WebSocket - what a pain this will be...
+[x] Polling :)
