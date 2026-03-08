@@ -1,0 +1,103 @@
+.loadingContainer {
+  font-family: Bahnschrift, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f9fff7;
+  padding: 20px;
+}
+
+/* RECTANGLES */
+.loadingRectangles {
+  display: flex;
+  gap: 17px;
+  margin-bottom: 30px;
+}
+
+.rectangle {
+  width: 30px;
+  height: 70px;
+  background-color: #2e7d32;
+  border-radius: 8px;
+  animation: pulse 1300ms ease-in-out infinite;
+}
+
+.rectangleOne {
+  animation-delay: 250ms;
+}
+
+.rectangleTwo {
+  animation-delay: 500ms;
+}
+
+.rectangleThree {
+  animation-delay: 750ms;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+}
+
+/* TEXT */
+h3 {
+  font-size: 2rem;
+}
+
+.errorMessage {
+  text-align: center;
+}
+
+.feedbackTxt {
+  font-size: 1.5rem;
+}
+
+.retryBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #bfefcd;
+  font-size: 1.5rem;
+  border-radius: 30px;
+  border-width: 1px;
+  margin: 10px;
+  width: 150px;
+  height: 50px;
+  transition: background-color 150ms ease-in-out;
+  cursor: pointer;
+}
+
+.retryBtn:hover {
+  background-color: #a5e4b4;
+}
+
+@media (min-width: 768px) {
+  h3 {
+    font-size: 2.5rem;
+  }
+
+  .loadingRectangles {
+    gap: 25px;
+  }
+
+  .rectangle {
+    width: 50px;
+    height: 100px;
+  }
+
+  .feedbackTxt {
+    font-size: 2rem;
+  }
+}

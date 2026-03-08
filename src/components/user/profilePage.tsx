@@ -1,5 +1,6 @@
 import { useUser } from "../../contexts/UserContext.js";
 import Banner from "../page/banner.js";
+import { LoadingWrapper } from "../loading/loadingWrapper.js";
 import styles from "./profilePage.module.css";
 import React, { type FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -19,9 +20,9 @@ interface FriendRequest {
 }
 
 export function ProfilePage() {
-  // Add debug to user if profile is loading
-
   const { profile, loading, refreshProfile } = useUser();
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [newNickname, setNewNickname] = useState("");
   const [isDeletingProfile, setIsDeletingProfile] = useState(false);
   const [nicknamePrompt, setNicknamePrompt] = useState(false);
@@ -58,23 +59,38 @@ export function ProfilePage() {
   }, [profile]);
 
   async function loadFriendsData() {
-    const [friendsRes, incomingRes, outgoingRes] = await Promise.all([
-      fetch("/api/friendship/friends"),
-      fetch("/api/friendship/requests/incoming"),
-      fetch("/api/friendship/requests/outgoing"),
-    ]);
+    setFriendsLoading(true);
+    setError(null);
 
-    if (friendsRes.ok) {
-      const data: Friend[] = await friendsRes.json();
-      setFriends(data);
-    }
-    if (incomingRes.ok) {
-      const data: FriendRequest[] = await incomingRes.json();
-      setIncomingRequests(data);
-    }
-    if (outgoingRes.ok) {
-      const data: FriendRequest[] = await outgoingRes.json();
-      setOutgoingRequests(data);
+    const timeoutId = setTimeout(() => {
+      setError("Failed to load friends");
+      setFriendsLoading(false);
+    }, 10000);
+
+    try {
+      const [friendsRes, incomingRes, outgoingRes] = await Promise.all([
+        fetch("/api/friendship/friends"),
+        fetch("/api/friendship/requests/incoming"),
+        fetch("/api/friendship/requests/outgoing"),
+      ]);
+
+      if (friendsRes.ok) {
+        const data: Friend[] = await friendsRes.json();
+        setFriends(data);
+      }
+      if (incomingRes.ok) {
+        const data: FriendRequest[] = await incomingRes.json();
+        setIncomingRequests(data);
+      }
+      if (outgoingRes.ok) {
+        const data: FriendRequest[] = await outgoingRes.json();
+        setOutgoingRequests(data);
+      }
+    } catch (err) {
+      setError("Failed to load friends");
+    } finally {
+      clearTimeout(timeoutId);
+      setFriendsLoading(false);
     }
   }
 
@@ -86,10 +102,21 @@ export function ProfilePage() {
     }
   }, [profile, loading, navigate]);
 
-  if (loading) return <p>Loading profile</p>;
+  const isLoading = loading || friendsLoading;
+
+  if (isLoading || error) {
+    return (
+      <>
+        <Banner />
+        <LoadingWrapper loading={loading} error={error}>
+          <div></div>
+        </LoadingWrapper>
+      </>
+    );
+  }
 
   if (!profile) return <p>Not logged in, redirecting...</p>;
-  // DO NOT FORGET TO FIX!!
+
   if (!profile.nickname)
     return (
       <>

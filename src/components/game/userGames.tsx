@@ -5,6 +5,7 @@ import Banner from "../page/banner.js";
 import styles from "./userGames.module.css";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
+import { LoadingWrapper } from "../loading/loadingWrapper.js";
 
 interface Move {
   moveNumber: number;
@@ -62,6 +63,8 @@ interface GameRequest {
 
 export function UserGames() {
   const { profile, loading } = useUser();
+  const [gamesLoading, setGamesLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [friends, setFriends] = useState<FriendsWithGameStatus[]>([]);
   const [activeGames, setActiveGames] = useState<ActiveGame[]>([]);
   const [historicGames, setHistoricGames] = useState<HistoricGame[]>([]);
@@ -84,72 +87,84 @@ export function UserGames() {
   }, [profile]);
 
   async function loadGamesData() {
-    const [
-      friendsRes,
-      incomingRequestsRes,
-      outgoingRequestsRes,
-      activeGamesRes,
-      historicGamesRes,
-    ] = await Promise.all([
-      fetch("/api/friendship/friends"),
-      fetch("/api/games/requests/incoming"),
-      fetch("/api/games/requests/outgoing"),
-      fetch("/api/games/active"),
-      fetch("/api/games/historic"),
-    ]);
+    setGamesLoading(true);
+    setError(null);
 
-    const friendsData: Friend[] = await friendsRes.json();
-    const incomingReqData: GameRequest[] = await incomingRequestsRes.json();
-    const outgoingReqData: GameRequest[] = await outgoingRequestsRes.json();
-    const activeGamesData: ActiveGame[] = await activeGamesRes.json();
-    const historicGamesData: HistoricGame[] = await historicGamesRes.json();
+    const timeoutId = setTimeout(() => {
+      setError("Failed to load games");
+    }, 10000);
 
-    const activeGameFriendIds = new Map(
-      activeGamesData.map((g) => [g.opponentId, g.id]),
-    );
-    const incomingRequestFriendIds = new Map(
-      incomingReqData.map((r) => [r.friendId, r.requestId]),
-    );
-    const outgoingRequestFriendIds = new Map(
-      outgoingReqData.map((r) => [r.friendId, r.requestId]),
-    );
+    try {
+      const [
+        friendsRes,
+        incomingRequestsRes,
+        outgoingRequestsRes,
+        activeGamesRes,
+        historicGamesRes,
+      ] = await Promise.all([
+        fetch("/api/friendship/friends"),
+        fetch("/api/games/requests/incoming"),
+        fetch("/api/games/requests/outgoing"),
+        fetch("/api/games/active"),
+        fetch("/api/games/historic"),
+      ]);
 
-    const friendsWithStatus: FriendsWithGameStatus[] = friendsData.map(
-      (friend) => {
-        let gameStatus: GameCondition;
-        let gameId: number | undefined;
-        let requestId: number | undefined;
+      const friendsData: Friend[] = await friendsRes.json();
+      const incomingReqData: GameRequest[] = await incomingRequestsRes.json();
+      const outgoingReqData: GameRequest[] = await outgoingRequestsRes.json();
+      const activeGamesData: ActiveGame[] = await activeGamesRes.json();
+      const historicGamesData: HistoricGame[] = await historicGamesRes.json();
 
-        if (activeGameFriendIds.has(friend.id)) {
-          gameStatus = GameCondition.Active;
-          gameId = activeGameFriendIds.get(friend.id);
-        } else if (incomingRequestFriendIds.has(friend.id)) {
-          gameStatus = GameCondition.IncomingRequest;
-          requestId = incomingRequestFriendIds.get(friend.id);
-        } else if (outgoingRequestFriendIds.has(friend.id)) {
-          gameStatus = GameCondition.OutgoingRequest;
-          requestId = outgoingRequestFriendIds.get(friend.id);
-        } else {
-          gameStatus = GameCondition.None;
-        }
+      const activeGameFriendIds = new Map(
+        activeGamesData.map((g) => [g.opponentId, g.id]),
+      );
+      const incomingRequestFriendIds = new Map(
+        incomingReqData.map((r) => [r.friendId, r.requestId]),
+      );
+      const outgoingRequestFriendIds = new Map(
+        outgoingReqData.map((r) => [r.friendId, r.requestId]),
+      );
 
-        return {
-          friendId: friend.id,
-          nickname: friend.nickname,
-          gameStatus,
-          gameId,
-          requestId,
-        };
-      },
-    );
+      const friendsWithStatus: FriendsWithGameStatus[] = friendsData.map(
+        (friend) => {
+          let gameStatus: GameCondition;
+          let gameId: number | undefined;
+          let requestId: number | undefined;
 
-    console.log(friendsWithStatus);
+          if (activeGameFriendIds.has(friend.id)) {
+            gameStatus = GameCondition.Active;
+            gameId = activeGameFriendIds.get(friend.id);
+          } else if (incomingRequestFriendIds.has(friend.id)) {
+            gameStatus = GameCondition.IncomingRequest;
+            requestId = incomingRequestFriendIds.get(friend.id);
+          } else if (outgoingRequestFriendIds.has(friend.id)) {
+            gameStatus = GameCondition.OutgoingRequest;
+            requestId = outgoingRequestFriendIds.get(friend.id);
+          } else {
+            gameStatus = GameCondition.None;
+          }
 
-    setFriends(friendsWithStatus);
-    setIncomingRequests(incomingReqData);
-    setOutgoingRequests(outgoingReqData);
-    setActiveGames(activeGamesData);
-    setHistoricGames(historicGamesData);
+          return {
+            friendId: friend.id,
+            nickname: friend.nickname,
+            gameStatus,
+            gameId,
+            requestId,
+          };
+        },
+      );
+
+      setFriends(friendsWithStatus);
+      setIncomingRequests(incomingReqData);
+      setOutgoingRequests(outgoingReqData);
+      setActiveGames(activeGamesData);
+      setHistoricGames(historicGamesData);
+    } catch (err) {
+      setError("Failed to load games");
+    } finally {
+      clearTimeout(timeoutId);
+      setGamesLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -160,7 +175,18 @@ export function UserGames() {
     }
   }, [profile, loading, navigate]);
 
-  if (loading) return <p>Loading games</p>;
+  const isLoading = loading || gamesLoading;
+
+  if (isLoading || error) {
+    return (
+      <>
+        <Banner />
+        <LoadingWrapper loading={isLoading} error={error}>
+          <div></div>
+        </LoadingWrapper>
+      </>
+    );
+  }
 
   if (!profile) return <p>Not logged in, redirecting...</p>;
 
@@ -681,10 +707,10 @@ export function UserGames() {
                   <div className={styles.dialogContainer}>
                     <button
                       className={styles.closeBtn}
-                      onClick={() => (
-                        newGameDialogRef.current?.close(),
-                        setNewReqStep(1)
-                      )}
+                      onClick={() => {
+                        newGameDialogRef.current?.close();
+                        setNewReqStep(1);
+                      }}
                     >
                       ✖️
                     </button>

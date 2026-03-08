@@ -12,7 +12,6 @@ Start with the duct tape, refactor later
 [X] Only allow one active game per friendship
 [] Games expire after 3 days of no moves
 [] Last to make move is winner
-[] Counter for user? Implement in frontend
 [x] Games start when game request accepted
 [x] Delete game request entry when game accepted/declined
 [x] Games are either inProgress, completed, draw, or forfeited

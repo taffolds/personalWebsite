@@ -15,13 +15,13 @@ Make CSS mobile friendly from start!
 [X] Make circular holes instead of squares for pieces
 [X] Make pieces look like more than just a solid colour
 [X] Animate pieces falling from top of board to final position
-[] Animate a win
-[] Remove transparent from .cells once done debugging
+[x] Animate a win
+[x] Remove transparent from .cells once done debugging
 [] When entering a game, make only last piece fall
 [x] When polling, do not reanimate same piece twice
-[] Style the offline version!
+[x] Style the offline version!
 
 Other:
-[] Make two routes from four in a row link
-[] One to offline, with info
-[] One to online, which lists friends and games
+[x] Make two routes from four in a row link
+[x] One to offline, with info
+[x] One to online, which lists friends and games
