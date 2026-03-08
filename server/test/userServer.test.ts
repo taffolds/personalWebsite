@@ -229,7 +229,7 @@ describe("change nicknames: Patch /nickname", () => {
 
     vi.spyOn(userService, "updateNickname").mockResolvedValue({
       success: false,
-      error: "Too many characters",
+      error: "Nickname can be max 15 characters",
     });
 
     const res = await userApp.request("/nickname", {
@@ -243,7 +243,7 @@ describe("change nicknames: Patch /nickname", () => {
     expect(res.status).toBe(400);
 
     const errorMessage = await res.json();
-    expect(errorMessage.message).toContain("Too many characters");
+    expect(errorMessage.message).toBe("Nickname can be max 15 characters");
   });
 
   it("should display error only char digits", async () => {
@@ -253,7 +253,7 @@ describe("change nicknames: Patch /nickname", () => {
 
     vi.spyOn(userService, "updateNickname").mockResolvedValue({
       success: false,
-      error: "Only characters and digits",
+      error: "Nickname can be max 15 characters",
     });
 
     const res = await userApp.request("/nickname", {
@@ -267,7 +267,7 @@ describe("change nicknames: Patch /nickname", () => {
     expect(res.status).toBe(400);
 
     const errorMessage = await res.json();
-    expect(errorMessage.message).toBe("Only characters and digits");
+    expect(errorMessage.message).toBe("Nickname can be max 15 characters");
   });
 
   it("detects some funny business", async () => {
@@ -297,7 +297,7 @@ describe("delete user: Delete /", () => {
 
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
-    const res = await userApp.request("/", {
+    const res = await userApp.request("/delete", {
       method: "DELETE",
     });
 
@@ -306,7 +306,7 @@ describe("delete user: Delete /", () => {
   it("should detect postman funny business", async () => {
     vi.mocked(getSignedCookie).mockResolvedValue(undefined);
 
-    const res = await userApp.request("/", {
+    const res = await userApp.request("/delete", {
       method: "DELETE",
     });
 

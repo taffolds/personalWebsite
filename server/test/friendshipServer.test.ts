@@ -46,7 +46,7 @@ describe("Search for users", () => {
 
   it("should tell the user off for leaving search field blank", async () => {
     const user = await createTestUser();
-    await setNicknameTestUser(user.id, "letterAfterDelta");
+    await setNicknameTestUser(user.id, "madeUpName");
     vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
 
     const res = await friendshipApp.request("/search");
@@ -184,9 +184,9 @@ describe("Pending outgoing requests", () => {
     expect(res.status).toBe(200);
 
     const data = await res.json();
-    expect(data.outgoingRequests).toHaveLength(2);
-    expect(data.outgoingRequests[0]).toBe("Darren");
-    expect(data.outgoingRequests[1]).toBe("Warren");
+    expect(data).toHaveLength(2);
+    expect(data[0].nickname).toBe("Darren");
+    expect(data[1].nickname).toBe("Warren");
   });
 
   it("Should show no outgoing requests when there are none", async () => {
@@ -199,7 +199,7 @@ describe("Pending outgoing requests", () => {
     expect(res.status).toBe(200);
 
     const data = await res.json();
-    expect(data.outgoingRequests).toHaveLength(0);
+    expect(data).toHaveLength(0);
   });
 
   it("should tell the user needs nickname", async () => {
@@ -249,7 +249,7 @@ describe("Pending incoming requests", () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveLength(1);
-    expect(data[0].fromNickname).toBe("Julia");
+    expect(data[0].nickname).toBe("Julia");
   });
 
   it("should show no requests when none exist", async () => {
@@ -310,7 +310,7 @@ describe("Confirm friend requests", () => {
     const requests = await incomingRes.json();
 
     expect(requests).toHaveLength(1);
-    expect(requests[0].fromNickname).toBe("Ines");
+    expect(requests[0].nickname).toBe("Ines");
 
     const requestId = requests[0].requestId;
 

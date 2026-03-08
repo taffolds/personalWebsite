@@ -58,6 +58,16 @@ friendshipApp.get("/search", async (c) => {
     return c.json({ message: "Search field has to contain something" }, 400);
   const res = await searchForUsers(searchNickname);
 
+  if ("error" in res) {
+    switch (res.error) {
+      case "Nickname can be max 15 characters":
+        return c.json({ message: res.error }, 400);
+      case "Nickname can only contain characters and digits":
+        return c.json({ message: res.error }, 400);
+      default:
+        return c.json({ message: "If this pops up who knows" }, 500);
+    }
+  }
   return c.json(res, 200);
 });
 
