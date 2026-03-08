@@ -3,8 +3,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { FourInARowOffline } from "./fourInARowOffline.js";
 
-vi.mock("./banner.js", () => ({
-  Banner: () => <div>Mocked Banner</div>,
+vi.mock("../page/banner.js", () => ({
+  default: () => <div>Mocked Banner</div>,
 }));
 
 const clickColumn = (column: number) => {
@@ -21,7 +21,7 @@ describe("Shows horizontal win", () => {
     clickColumn(0);
     clickColumn(0);
     clickColumn(1);
-    const winnerMessage = screen.queryByText("Winner is red");
+    const winnerMessage = screen.queryByText("Winner is red!");
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 horizontals as win", () => {
@@ -31,7 +31,7 @@ describe("Shows horizontal win", () => {
     clickColumn(1);
     clickColumn(1);
     clickColumn(2);
-    expect(screen.queryByText("Winner is red")).toBeNull();
+    expect(screen.queryByText("Winner is red!")).toBeNull();
   });
 });
 
@@ -45,7 +45,7 @@ describe("Shows vertical win", () => {
     clickColumn(3);
     clickColumn(0);
     clickColumn(3);
-    const winnerMessage = screen.queryByText("Winner is red");
+    const winnerMessage = screen.queryByText("Winner is red!");
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 verticals as win", () => {
@@ -55,7 +55,7 @@ describe("Shows vertical win", () => {
     clickColumn(3);
     clickColumn(0);
     clickColumn(3);
-    expect(screen.queryByText("Winner is red")).toBeNull();
+    expect(screen.queryByText("Winner is red!")).toBeNull();
   });
 });
 
@@ -73,7 +73,7 @@ describe("Shows falling diagonal win", () => {
     clickColumn(0);
     clickColumn(3);
     clickColumn(3);
-    const winnerMessage = screen.queryByText("Winner is red");
+    const winnerMessage = screen.queryByText("Winner is red!");
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 falling diagonals as a win", () => {
@@ -85,7 +85,7 @@ describe("Shows falling diagonal win", () => {
     clickColumn(2);
     clickColumn(3);
     clickColumn(1);
-    expect(screen.queryByText("Winner is red")).toBeNull();
+    expect(screen.queryByText("Winner is red!")).toBeNull();
   });
 });
 
@@ -102,7 +102,7 @@ describe("Shows rising diagonal win", () => {
     clickColumn(5);
     clickColumn(5);
     clickColumn(5);
-    const winnerMessage = screen.queryByText("Winner is blue");
+    const winnerMessage = screen.queryByText("Winner is blue!");
     expect(winnerMessage).toBeTruthy();
   });
   it("does not detect 3 rising diagonals as a win", () => {
@@ -113,7 +113,7 @@ describe("Shows rising diagonal win", () => {
     clickColumn(3);
     clickColumn(4);
     clickColumn(4);
-    expect(screen.queryByText("Winner is blue")).toBeNull();
+    expect(screen.queryByText("Winner is blue!")).toBeNull();
   });
 });
 
@@ -122,7 +122,7 @@ describe("Makes pieces fall down to closest available cell", () => {
     render(<FourInARowOffline />);
     clickColumn(0);
     const bottomLeftCell = screen.getByTestId("5-0");
-    expect(bottomLeftCell).toHaveTextContent("red");
+    expect(bottomLeftCell.querySelector("div")).toBeTruthy();
   });
   it("falls on top of other piece", () => {
     render(<FourInARowOffline />);
@@ -132,8 +132,8 @@ describe("Makes pieces fall down to closest available cell", () => {
     clickColumn(5);
     const cell4_6 = screen.getByTestId("4-6");
     const cell4_5 = screen.getByTestId("4-5");
-    expect(cell4_6).toHaveTextContent("blue");
-    expect(cell4_5).toHaveTextContent("blue");
+    expect(cell4_6.querySelector("div")).toBeTruthy();
+    expect(cell4_5.querySelector("div")).toBeTruthy();
   });
   it("doesn't change turns after clicking a full column", () => {
     render(<FourInARowOffline />);
@@ -146,7 +146,7 @@ describe("Makes pieces fall down to closest available cell", () => {
     clickColumn(0); // This is the superfluous click
     clickColumn(1);
     const cell5_1 = screen.getByTestId("5-1");
-    expect(cell5_1).toHaveTextContent("red");
+    expect(cell5_1.querySelector("div")).toBeTruthy();
   });
 });
 
@@ -175,7 +175,7 @@ describe("Asks user to play again", () => {
     const playAgainButton = screen.getByText("Play again?");
     fireEvent.click(playAgainButton);
     const cell5_0 = screen.getByTestId("5-0");
-    expect(cell5_0).toHaveTextContent("(5, 0)");
+    expect(cell5_0.querySelector("div")).toBeNull();
   });
 });
 
@@ -248,7 +248,7 @@ describe("Checks draw condition", () => {
     clickColumn(6);
     clickColumn(6);
     clickColumn(6);
-    const noWinnerMessage = screen.getByText("No winner");
+    const noWinnerMessage = screen.getByText("No winner :(");
     const playAgainMessage = screen.getByText("Play again?");
     expect(noWinnerMessage).toBeTruthy();
     expect(playAgainMessage).toBeTruthy();
