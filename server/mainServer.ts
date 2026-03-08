@@ -3,6 +3,8 @@ import { serve } from "@hono/node-server";
 import userApp from "./userServer.js";
 import friendshipApp from "./friendshipServer.js";
 import gameApp from "./gameServer.js";
+import { db } from "./db/index.js";
+import { sql } from "drizzle-orm";
 // remember serveStatic when going to production
 // import { serveStatic } from "@hono/node-server/serve-static";
 
@@ -12,17 +14,34 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export function createApp() {
-  const app = new Hono();
+const app = new Hono();
 
-  app.route("/api/user", userApp);
-  app.route("/api/friendship", friendshipApp);
-  app.route("/api/games", gameApp);
+app.get("/health", async (c) => {
+  try {
+    await db.execute(sql`SELECT 1`);
 
-  return app;
-}
+    return c.json(
+      {
+        status: "healthy",
+        database: "connected",
+      },
+      200,
+    );
+  } catch (error) {
+    return c.json(
+      {
+        status: "unhealthy",
+        database: "disconnected",
+        error: "Database connection failed",
+      },
+      503,
+    );
+  }
+});
 
-const app = createApp();
+app.route("/api/user", userApp);
+app.route("/api/friendship", friendshipApp);
+app.route("/api/games", gameApp);
 
 app.onError((e, c) => {
   return c.json(
