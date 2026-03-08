@@ -34,7 +34,7 @@ export async function sendGameRequest(
       userId2: id2,
       firstMove: firstMove,
       requestedBy: requestedBy,
-      expiresAt: new Date(), // +3 days
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
       createdAt: new Date(),
     })
     .returning();
@@ -136,15 +136,16 @@ export async function acceptGameRequest(requestId: number, userId: number) {
   return res;
 }
 
-export async function showAllGameRequests(userId: number) {
+export async function showIncomingGameRequests(userId: number) {
   const fromUserId = sql<number>`CASE WHEN ${gameRequests.userId1} = ${userId} THEN ${gameRequests.userId2} ELSE ${gameRequests.userId1} END`;
 
   const requests = await db
     .select({
       requestId: gameRequests.id,
-      fromUserId: fromUserId,
-      fromNickname: users.nickname,
+      friendId: fromUserId,
+      nickname: users.nickname,
       firstMove: gameRequests.firstMove,
+      requestedBy: gameRequests.requestedBy,
     })
     .from(gameRequests)
     .innerJoin(users, eq(fromUserId, users.id))
@@ -163,8 +164,10 @@ export async function showOutgoingGameRequests(userId: number) {
   const requests = await db
     .select({
       requestId: gameRequests.id,
-      toNickname: users.nickname,
+      friendId: toUserId,
+      nickname: users.nickname,
       firstMove: gameRequests.firstMove,
+      requestedBy: gameRequests.requestedBy,
     })
     .from(gameRequests)
     .innerJoin(users, eq(toUserId, users.id))
@@ -183,7 +186,11 @@ export async function getUserGames(userId: number) {
   const userGames = await db
     .select({
       id: games.id,
+      opponentId: opponentId,
       opponentNickname: users.nickname,
+      firstMove: games.firstMove,
+      lastMoveAt: games.lastMoveAt,
+      moves: games.moves,
     })
     .from(games)
     .innerJoin(users, eq(opponentId, users.id))
@@ -204,7 +211,13 @@ export async function getHistoricGames(userId: number) {
   const historicGames = await db
     .select({
       id: games.id,
+      opponentId: opponentId,
       opponentNickname: users.nickname,
+      firstMove: games.firstMove,
+      status: games.status,
+      winnerId: games.winnerId,
+      completedAt: games.lastMoveAt,
+      moveCount: games.moves,
     })
     .from(games)
     .innerJoin(users, eq(opponentId, users.id))
@@ -233,6 +246,7 @@ export async function getCurrentGame(gameId: number, userId: number) {
       createdAt: games.createdAt,
       lastMoveAt: games.lastMoveAt,
       opponentNickname: users.nickname,
+      opponentId: users.id,
     })
     .from(games)
     .innerJoin(users, eq(opponentId, users.id))
