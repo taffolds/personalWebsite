@@ -1,27 +1,40 @@
+/* GENERAL */
 .wrapper {
+  font-family: Bahnschrift, sans-serif;
   display: flex;
   flex-direction: column;
+  width: 100vw;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .container {
+  background-color: #ecfff3;
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 90vh;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 20px;
 }
 
 .container h1 {
+  /* Only in offline */
   text-align: center;
+  margin-top: -10px;
 }
 
+/* BOARD */
 .board {
+  width: calc(100vw - 20px);
+  max-width: 500px;
   background-color: burlywood;
   border-spacing: 3px;
   border-width: 2px;
   border-style: solid;
+  border-radius: 30px;
+  padding: 5px;
 }
 
 .cells {
@@ -33,7 +46,7 @@
   background-color: white;
   border-color: black;
   border-radius: 50%;
-  color: transparent;
+  /* color: transparent; */
   position: relative;
 }
 
@@ -47,13 +60,13 @@
   border-radius: 50%;
   pointer-events: none;
   box-shadow: inset 0 6px 12px rgba(139, 90, 43, 0.5);
-  z-index: 2;
+  /* z-index: 2; */
 }
 
 .red,
 .blue {
   position: absolute;
-  z-index: 1;
+  /* z-index: 1; */
   top: 0;
   left: 0;
   width: 100%;
@@ -84,71 +97,263 @@
   }
 }
 
-.rotateOverlay {
-  display: none;
+/* USER */
+.playerInfo {
+  /* background-color: #85e88b;  DEBUG */
+  width: 300px;
+  height: 100px;
+  padding: 10px;
+  border-radius: 30px;
+  margin-bottom: 10px;
 }
 
-.rotateContent p {
-  margin: 10px;
-  font-family: Bahnschrift, sans-serif;
+.offlineExtraSpace {
+  padding-bottom: 30px;
 }
 
-.rotateContent {
+.playerRow {
   display: flex;
-  justify-content: center;
+  flex-direction: row;
+  margin-bottom: 10px;
+}
+
+.username {
+  display: flex;
+  font-size: 1.5rem;
+  text-indent: 10px;
+  /* Anything other than this looks weird */
   align-items: center;
+  margin-top: 5px;
+}
+
+.turnName {
+  font-weight: bold;
+}
+
+.userPiece {
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #000000;
+  flex-shrink: 0;
+}
+
+.activePiece {
+  border-width: 3px;
+}
+
+.redUserPiece {
+  background-color: #ca2a05;
+  box-shadow: inset 0 2px 12px #100606;
+}
+
+.blueUserPiece {
+  background-color: #3356ca;
+  box-shadow: inset 0 2px 12px #05050e;
+}
+
+/* WINNER */
+.endgameAnimation {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.party {
+  font-size: 10rem;
+  animation: celebrationBurst 1.5s ease-out forwards;
+}
+.draw,
+.loser {
+  font-family: Bahnschrift, sans-serif;
+  font-size: 6rem;
+  font-weight: bold;
+  animation: loseOrDraw 2s ease-out forwards;
+}
+
+.loser {
+  color: #ff7e7e;
+}
+
+.draw {
+  color: #787878;
+}
+
+@keyframes celebrationBurst {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.5) rotate(10deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.3) rotate(-5deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1.4) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes loseOrDraw {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* MODALS */
+dialog {
+  padding: 0;
+  border-radius: 10px;
+  border-style: solid;
+  transition: background-color 500ms ease-in-out;
+}
+
+.dialog:has(.forfeitContainer) {
+}
+
+.dialogContainer {
+  padding: 10px;
+  width: fit-content;
+  max-width: 80vw;
+  height: fit-content;
+  position: relative;
+}
+
+.dialogOptionsWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.forfeitContainer {
+  background-color: #ffe0e0;
+  border-color: #ff6c6c;
+}
+
+.rematchContainer {
+  background-color: #f2ffd6;
+  border-color: #0f5113;
+}
+
+/* BUTTONS */
+.btnContainer {
+  display: flex;
   flex-direction: column;
 }
 
-.rotateIcon {
-  width: 60px;
-  height: 120px;
-  border: 6px solid burlywood;
-  border-top: 6px solid navajowhite; /* Intentional */
-  border-radius: 2%;
-  margin-bottom: 40px;
-
-  animation-name: rotate;
-  animation-duration: 2s;
-  animation-timing-function: ease-out;
-  animation-iteration-count: infinite;
+.gameBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  border-radius: 30px;
+  border-width: 1px;
+  margin: 10px;
+  width: 220px;
+  height: 50px;
+  transition: background-color 150ms ease-in-out;
+  cursor: pointer;
 }
 
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  80% {
-    transform: rotate(-90deg);
-  }
-  100% {
-    transform: rotate(-90deg);
-  }
+.dialogBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  border-radius: 30px;
+  border-width: 1px;
+  margin: 10px;
+  width: 150px;
+  height: 50px;
+  transition: background-color 150ms ease-in-out;
+  cursor: pointer;
 }
 
-@media (max-width: 768px) and (orientation: portrait) {
-  .rotateOverlay {
-    display: flex;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 95vw;
-    height: 100vh;
-    background-color: darkslategray;
-    color: white;
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 20px;
-  }
+.forfeitBtn {
+  margin-top: 30px;
+  background-color: #ffd0d0;
+}
 
-  .container {
-    display: none;
-  }
+.forfeitBtn:hover {
+  background-color: #ffabab;
+}
+
+.backBtn {
+  background-color: #c1cfff;
+}
+
+.backBtn:hover {
+  background-color: #a1b4ff;
+}
+
+.replayBtn {
+  background-color: #a3f4a6;
+}
+
+.replayBtn:hover {
+  background-color: #5fd562;
+}
+
+.confirmDialogBtn {
+  background-color: #d6ffd7;
+}
+
+.confirmDialogBtn:hover {
+  background-color: #77d87b;
+}
+
+.rejectDialogBtn {
+  background-color: #ff7b7b;
+}
+
+.rejectDialogBtn:hover {
+  background-color: #fd5656;
+}
+
+.cancelDialogBtn {
+  background-color: #f1f1f1;
+}
+
+.cancelDialogBtn:hover {
+  background-color: #c1c1c1;
 }
 
 @media (min-width: 768px) {
+  .container h1 {
+    /* Only in offline */
+    margin-top: 0;
+  }
+
   .board {
     padding: 20px;
     border-spacing: 6px;
@@ -156,6 +361,27 @@
 
   .cells {
     --cell-size: 70px;
+    width: var(--cell-size);
+    height: var(--cell-size);
+  }
+
+  .btnContainer {
+    flex-direction: row;
+  }
+
+  .endgameAnimation {
+    top: 50%;
+  }
+
+  @keyframes pieceFalling {
+    0% {
+      transform: translateY(
+        calc(var(--row-index) * var(--cell-size) * -1 - 100px)
+      );
+    }
+    100% {
+      transform: translateY(0);
+    }
   }
 
   .hoverTarget {

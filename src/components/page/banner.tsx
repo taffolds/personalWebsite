@@ -14,6 +14,7 @@ const Banner = () => {
   const isGamePage = location.pathname.startsWith("/fourInARow");
   const isLoginPage = location.pathname === "/login";
   const isProfilePage = location.pathname === "/profile";
+  const targetRef = useRef<HTMLElement>(null);
   const toggle = () => setIsOpen(!isOpen);
   const hide = () => setIsOpen(false);
   const show = () => setIsOpen(true);
@@ -30,7 +31,6 @@ const Banner = () => {
     };
   }, []);
 
-  const targetRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     if (targetRef.current) {
       document.body.style.marginLeft = "0px";

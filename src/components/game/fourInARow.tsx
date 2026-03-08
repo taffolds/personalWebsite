@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Banner from "../page/banner.js";
 import styles from "./fourInARow.module.css";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useUser } from "../../contexts/UserContext.js";
 import toast from "react-hot-toast";
 
@@ -16,9 +16,11 @@ function createEmptyGame(): CellValue[][] {
 export function FourInARow() {
   const { gameId } = useParams<{ gameId: string }>();
   const { profile } = useUser();
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true); // KEEPING FOR LATER
   const [board, setBoard] = useState<CellValue[][]>(createEmptyGame());
   const [opponentNickname, setOpponentNickname] = useState<string>("");
+  const [nicknameEnding, setNicknameEnding] = useState(false);
+  const [opponentId, setOpponentId] = useState<string>("");
   const [winner, setWinner] = useState<number | null>(null); // Redo this
   const [draw, setDraw] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
@@ -26,8 +28,13 @@ export function FourInARow() {
   const [firstMoverId, setFirstMoverId] = useState<number | null>(null);
   const [moveCount, setMoveCount] = useState(0);
   const [gameStatus, setGameStatus] = useState<string>("in_progress");
+  const [newRequestId, setNewRequestId] = useState(null);
+  const navigate = useNavigate();
+  const forfeitGameDialogRef = useRef<HTMLDialogElement>(null);
+  const createRematchDialogRef = useRef<HTMLDialogElement>(null);
+  const acceptRematchDialogRef = useRef<HTMLDialogElement>(null);
 
-  function isMyTurn(
+  function checkIsMyTurn(
     currentMoveCount: number,
     firstMover: number,
     myId: number,
@@ -42,20 +49,30 @@ export function FourInARow() {
   async function loadGame() {
     if (!gameId) {
       setValidGame(false);
-      setLoading(false);
+      // setLoading(false);
       return;
     }
 
     const res = await fetch(`/api/games/game/${gameId}`);
     if (!res.ok) {
-      setLoading(false);
+      // setLoading(false);
       setValidGame(false);
       return;
     }
 
     const gameRes = await res.json();
 
+    const checkNickname = gameRes.opponentNickname;
+    const lastChar = checkNickname.toLowerCase().slice(-1);
+
+    if (lastChar === "s" || lastChar === "z" || lastChar === "x") {
+      setNicknameEnding(true);
+    } else {
+      setNicknameEnding(false);
+    }
+
     setOpponentNickname(gameRes.opponentNickname);
+    setOpponentId(gameRes.opponentId);
     setFirstMoverId(gameRes.firstMove);
     setMoveCount(gameRes.moves.length);
     setGameStatus(gameRes.status);
@@ -67,10 +84,14 @@ export function FourInARow() {
       setWinner(gameRes.winnerId);
     }
 
+    if (gameRes.status === "forfeited") {
+      setWinner(gameRes.winnerId);
+    }
+
     const reconstructered = reconstructBoard(gameRes.moves);
     setBoard(reconstructered);
     setValidGame(true);
-    setLoading(false);
+    // setLoading(false);
   }
 
   async function checkForUpdates() {
@@ -98,7 +119,7 @@ export function FourInARow() {
     if (!validGame || !profile || !firstMoverId) return;
     if (gameStatus !== "in_progress") return;
 
-    const myTurn = isMyTurn(moveCount, firstMoverId, profile.id);
+    const myTurn = checkIsMyTurn(moveCount, firstMoverId, profile.id);
     if (myTurn) return;
 
     const pollInterval = setInterval(() => {
@@ -156,7 +177,83 @@ export function FourInARow() {
     loadGame();
 
     setBoard(board);
-    // or load? getting so tired
+  }
+
+  async function handleForfeitGame(gameId: string | undefined) {
+    const res = await fetch(`/api/games/game/${gameId}/forfeit`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    if (res.ok) {
+      // @ts-ignore
+      toast.success(data.message || "Game forfeited");
+      forfeitGameDialogRef.current?.close();
+      await loadGame();
+    } else {
+      // @ts-ignore
+      toast.error(data.message || "Couldn't forfeit game");
+    }
+  }
+
+  async function handleSendRematchRequest() {
+    let newMover;
+    if (firstMoverId === profile?.id) {
+      newMover = opponentId;
+    } else {
+      newMover = profile?.id;
+    }
+
+    const res = await fetch("/api/games/requests/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        friendId: opponentId,
+        firstMove: newMover,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // @ts-ignore
+      toast.success(data.message || "Rematch requested");
+      createRematchDialogRef.current?.close();
+    } else {
+      if (data.message === "Game request already exists") {
+        setNewRequestId(data.requestId);
+        createRematchDialogRef.current?.close();
+        acceptRematchDialogRef.current?.show();
+      } else {
+        // @ts-ignore
+        toast.error(data.message || "Something went wrong");
+      }
+    }
+  }
+
+  async function handleAcceptGameRequest() {
+    const res = await fetch("/api/games/requests/accept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requestId: newRequestId,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // @ts-ignore
+      toast.success(data.message || "Game created");
+      acceptRematchDialogRef.current?.close();
+      navigate(`/fourInARow/${data.id}`);
+    } else {
+      // @ts-ignore
+      toast.error(data.message || "Failed to accept game request");
+    }
   }
 
   function getDropRow(columnIndex: number): number | null {
@@ -168,44 +265,113 @@ export function FourInARow() {
     return null;
   }
 
-  function getWinnerDisplay() {
-    if (!winner) return null;
-
-    if (winner === profile?.id) {
-      return "You win!";
-    } else {
-      return `${opponentNickname} wins!`;
-    }
-  }
+  const isPlayerOne = firstMoverId === profile?.id;
+  const p1Name = isPlayerOne ? "You" : opponentNickname;
+  const p2Name = isPlayerOne ? opponentNickname : "You";
+  const isP1Turn = moveCount % 2 === 0;
+  const isP2Turn = moveCount % 2 === 1;
+  const opponentSuffix = nicknameEnding ? "' turn" : "'s turn";
 
   return (
     <>
-      <div className={styles.rotateOverlay}>
-        <div className={styles.rotateContent}>
-          <div className={styles.rotateIcon}></div>
-          <p>Please rotate device</p>
-        </div>
-      </div>
-
       <Banner />
+
+      {winner &&
+        (winner === profile?.id ? (
+          <div
+            className={`${styles.endgameAnimation} ${styles.winnerAnimation}`}
+          >
+            <div className={styles.party}>🎉</div>
+          </div>
+        ) : (
+          <div
+            className={`${styles.endgameAnimation} ${styles.loserAnimation}`}
+          >
+            <div className={styles.loser}>LOST!</div>
+          </div>
+        ))}
+
+      {gameStatus === "forfeited" &&
+        (winner === profile?.id ? (
+          <div
+            className={`${styles.endgameAnimation} ${styles.winnerAnimation}`}
+          >
+            <div className={styles.party}>🎉</div>
+          </div>
+        ) : (
+          <div
+            className={`${styles.endgameAnimation} ${styles.loserAnimation}`}
+          >
+            <div className={styles.loser}>LOST!</div>
+          </div>
+        ))}
+
+      {draw && (
+        <div className={`${styles.endgameAnimation} ${styles.winnerAnimation}`}>
+          <div className={styles.draw}>DRAW</div>
+        </div>
+      )}
+
       <div className={styles.wrapper}>
         {validGame ? (
           <div className={styles.container}>
-            <h3>firstMove.nickname vs second.Move nickname</h3>
-            {!winner && !draw && opponentNickname && <p>player?'s turn</p>}
+            <div className={styles.playerInfo}>
+              {/* I promise I'll sort out this ternary mess someday. So fascinating though... */}
+              {/* And yes, I know the styling fails for draws, but I need to move on unfortunately */}
+              <div className={styles.playerRow}>
+                <div
+                  className={`
+                  ${styles.userPiece}
+                  ${styles.redUserPiece}
+                  ${gameStatus === "in_progress" ? (isP1Turn ? styles.activePiece : "") : isP1Turn ? "" : styles.turnName}
+                  `}
+                ></div>
+                <div
+                  className={`
+                  ${styles.username}
+                  ${gameStatus === "in_progress" ? (isP1Turn ? styles.turnName : "") : isP1Turn ? "" : styles.turnName}
+                `}
+                >
+                  {p1Name}
+                  {gameStatus === "in_progress" &&
+                    isP1Turn &&
+                    (isPlayerOne ? "r turn" : opponentSuffix)}
 
-            {winner && (
-              <>
-                <p>{getWinnerDisplay()}</p>
-                <p>Play again? set up backend</p>
-              </>
-            )}
+                  {winner &&
+                    isP2Turn &&
+                    (winner === profile?.id ? " win" : " wins")}
+                </div>
+              </div>
+              <div className={styles.playerRow}>
+                <div
+                  className={`
+                  ${styles.userPiece} 
+                  ${styles.blueUserPiece}
+                  ${gameStatus === "in_progress" ? (isP2Turn ? styles.activePiece : "") : isP2Turn ? "" : styles.activePiece}
+                `}
+                ></div>
+                <div
+                  className={`
+                  ${styles.username}
+                  ${gameStatus === "in_progress" ? (isP2Turn ? styles.turnName : "") : isP2Turn ? "" : styles.turnName}
+                `}
+                >
+                  {p2Name}
+                  {gameStatus === "in_progress" &&
+                    isP2Turn &&
+                    (!isPlayerOne ? "r turn" : opponentSuffix)}
+
+                  {winner &&
+                    isP1Turn &&
+                    (winner === profile?.id ? " win" : " wins")}
+                </div>
+              </div>
+            </div>
 
             {draw && (
-              <>
-                <p>Draw!</p>
-                <p>Play again? set up backend</p>
-              </>
+              <div className={styles.gameOver}>
+                <p className={styles.gameOverTxt}>Draw!</p>
+              </div>
             )}
 
             <table className={styles.board}>
@@ -235,11 +401,7 @@ export function FourInARow() {
                           }
                           onMouseLeave={() => setHoveredColumn(null)}
                         >
-                          {r ? (
-                            <div className={styles[r]}></div>
-                          ) : (
-                            `(${rowIndex}, ${columnIndex})` // yuck
-                          )}
+                          {r ? <div className={styles[r]}></div> : <div></div>}
                         </td>
                       );
                     })}
@@ -247,11 +409,108 @@ export function FourInARow() {
                 ))}
               </tbody>
             </table>
+            <div className={styles.btnContainer}>
+              {gameStatus === "in_progress" ? (
+                <button
+                  className={`${styles.gameBtn} ${styles.forfeitBtn}`}
+                  onClick={() => forfeitGameDialogRef.current?.showModal()}
+                >
+                  Forfeit game
+                </button>
+              ) : (
+                <button
+                  className={`${styles.gameBtn} ${styles.replayBtn}`}
+                  onClick={() => createRematchDialogRef.current?.showModal()}
+                >
+                  Rematch!
+                </button>
+              )}
+              <button
+                className={`${styles.gameBtn} ${styles.backBtn}`}
+                onClick={() => (window.location.href = "/userGames")}
+              >
+                Back to Games
+              </button>
+            </div>
+
+            <dialog ref={forfeitGameDialogRef}>
+              <div
+                className={`${styles.dialogContainer} ${styles.forfeitContainer}`}
+              >
+                <p>
+                  Are you sure you want to forfeit your game against{" "}
+                  {opponentNickname}?
+                </p>
+                <div className={styles.dialogOptionsWrapper}>
+                  <button
+                    className={`${styles.dialogBtn} ${styles.rejectDialogBtn}`}
+                    onClick={() => handleForfeitGame(gameId)}
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    className={`${styles.dialogBtn} ${styles.cancelDialogBtn}`}
+                    onClick={() => forfeitGameDialogRef.current?.close()}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </dialog>
+
+            <dialog ref={createRematchDialogRef}>
+              <div
+                className={`${styles.dialogContainer} ${styles.rematchContainer}`}
+              >
+                <p>Play again vs. {opponentNickname}?</p>
+                <div className={styles.dialogOptionsWrapper}>
+                  <button
+                    className={`${styles.dialogBtn} ${styles.confirmDialogBtn}`}
+                    onClick={() => handleSendRematchRequest()}
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    className={`${styles.dialogBtn} ${styles.cancelDialogBtn}`}
+                    onClick={() => createRematchDialogRef.current?.close()}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </dialog>
+
+            <dialog ref={acceptRematchDialogRef}>
+              <div
+                className={`${styles.dialogContainer} ${styles.rematchContainer}`}
+              >
+                <p>
+                  Game request already exists! Start new game with{" "}
+                  {opponentNickname}?
+                </p>
+                <div className={styles.dialogOptionsWrapper}>
+                  <button
+                    className={`${styles.dialogBtn} ${styles.confirmDialogBtn}`}
+                    onClick={() => handleAcceptGameRequest()}
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    className={`${styles.dialogBtn} ${styles.cancelDialogBtn}`}
+                    onClick={() => acceptRematchDialogRef.current?.close()}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </dialog>
           </div>
         ) : (
           <>
-            <h3>Didn't recognise game</h3>
-            <p>Get message from server?</p>
+            <h3>Game not found</h3>
+            <button onClick={() => (window.location.href = "/userGames")}>
+              Back to Games
+            </button>
           </>
         )}
       </div>

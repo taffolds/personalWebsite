@@ -112,6 +112,13 @@ export function AboutDevelopment() {
             website, more a fun coding challenge. I reckon I'll flesh it out
             after the semester.
           </p>
+          <p>
+            Once I really started developing the frontend, the time I'd spent
+            creating a normalised database really paid off. I needed some of the
+            payloads to the frontend to contain the opponent's nickname, and
+            with a simple modification to the service layer, the controller
+            returned exactly what I needed to make the frontend work.
+          </p>
         </details>
         <details className={styles.section}>
           <summary>
@@ -214,7 +221,9 @@ export function AboutDevelopment() {
             I have changed the colour using the built in colour picker on my
             IDE, clicked a colour, and seen if it looked like a matching colour
             to the rest of the website. I am happy with how the colours turned
-            out
+            out. The design of the different elements also varies, and this is
+            intentional. With this being a hobby project, I have taken the
+            liberty of playing around with different ways of styling.
           </p>
           <p>
             One of my main areas of focus was to make the website look appealing

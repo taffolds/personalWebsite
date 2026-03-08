@@ -21,6 +21,8 @@ function Application() {
         toastOptions={{
           style: {
             fontFamily: "Bahnschrift, sans-serif",
+            width: "fit-content",
+            textAlign: "center",
           },
         }}
       />

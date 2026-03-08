@@ -164,30 +164,40 @@ export function FourInARowOffline() {
 
   return (
     <>
-      <div className={styles.rotateOverlay}>
-        <div className={styles.rotateContent}>
-          <div className={styles.rotateIcon}></div>
-          <p>Please rotate device</p>
-        </div>
-      </div>
       <Banner />
       <div className={styles.wrapper}>
         <div className={styles.container}>
           <h1>Four In a Row</h1>
-          {!winner || (!isDraw && <p>{turn}'s turn</p>)}
 
-          {winner && (
-            <>
-              <p>Winner is {winner}</p>
-              <p onClick={() => handleNewGame()}>Play again?</p>
-            </>
+          {!winner && !isDraw && (
+            <div className={`${styles.offlineExtraSpace} ${styles.playerRow}`}>
+              <div
+                className={`
+                  ${styles.userPiece}
+                  ${turn === "red" ? styles.redUserPiece : styles.blueUserPiece}
+                  ${styles.activePiece}
+                  `}
+              ></div>
+              <div className={styles.username}>{turn}'s turn</div>
+            </div>
           )}
 
+          {winner && (
+            <div className={`${styles.offlineExtraSpace} ${styles.playerRow}`}>
+              <div
+                className={`
+                  ${styles.userPiece}
+                  ${winner === "red" ? styles.redUserPiece : styles.blueUserPiece}
+                  ${styles.activePiece}
+                  `}
+              ></div>
+              <div className={styles.username}>Winner is {winner}!</div>
+            </div>
+          )}
           {isDraw && (
-            <>
-              <p>No winner</p>
-              <p onClick={() => handleNewGame()}>Play again?</p>
-            </>
+            <div className={`${styles.offlineExtraSpace} ${styles.playerRow}`}>
+              <div className={styles.username}>No winner :(</div>
+            </div>
           )}
 
           <table className={styles.board}>
@@ -215,11 +225,7 @@ export function FourInARowOffline() {
                         }
                         onMouseLeave={() => setHoveredColumn(null)}
                       >
-                        {r ? (
-                          <div className={styles[r]}></div>
-                        ) : (
-                          `(${rowIndex}, ${columnIndex})`
-                        )}
+                        {r && <div className={styles[r]}></div>}
                       </td>
                     );
                   })}
@@ -227,6 +233,14 @@ export function FourInARowOffline() {
               ))}
             </tbody>
           </table>
+          {(winner || isDraw) && (
+            <button
+              className={`${styles.gameBtn} ${styles.replayBtn}`}
+              onClick={() => handleNewGame()}
+            >
+              Play again?
+            </button>
+          )}
         </div>
       </div>
     </>
