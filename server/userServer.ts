@@ -107,11 +107,11 @@ userApp.patch("/nickname", async (c) => {
   if (res.error) {
     // consider refactoring this
     switch (res.error) {
-      case "Nickname taken": // Not the biggest fan of the names either, frontend will require
-        return c.json({ message: res.error }, 409); // something a bit more fancy than this anyway
-      case "Too many characters":
+      case "Nickname taken":
+        return c.json({ message: res.error }, 409);
+      case "Nickname can be max 15 characters":
         return c.json({ message: res.error }, 400);
-      case "Only characters and digits":
+      case "Nickname can only contain characters and digits":
         return c.json({ message: res.error }, 400);
       default: // Not testing this until I've refactored
         return c.json("If this pops up who knows", 500);
@@ -121,8 +121,8 @@ userApp.patch("/nickname", async (c) => {
   return c.json({ message: "Nickname updated" }, 200);
 });
 
-userApp.delete("/", async (c) => {
-  const userId = await getSignedCookie(c, "user_id");
+userApp.delete("/delete", async (c) => {
+  const userId = await getSignedCookie(c, cookieSecret, "user_id");
 
   if (!userId) return c.json({ message: "Cannot delete other users" }, 401);
 

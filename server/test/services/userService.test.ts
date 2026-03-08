@@ -132,11 +132,15 @@ describe("update nickname", () => {
 
     const disallow1 = await updateNickname(user1.id, "with spaces");
     expect(disallow1.success).toBe(false);
-    expect(disallow1.error).toContain("Only characters and digits");
+    expect(disallow1.error).toContain(
+      "Nickname can only contain characters and digits",
+    );
 
     const disallow2 = await updateNickname(user2.id, "with?!");
     expect(disallow2.success).toBe(false);
-    expect(disallow2.error).toContain("Only characters and digits");
+    expect(disallow2.error).toContain(
+      "Nickname can only contain characters and digits",
+    );
   });
 
   it("should tell user limit is 20 chars", async () => {
@@ -145,7 +149,7 @@ describe("update nickname", () => {
     const disallow = await updateNickname(user.id, "012345678901234567890");
 
     expect(disallow.success).toBe(false);
-    expect(disallow.error).toContain("Too many characters");
+    expect(disallow.error).toContain("Nickname can be max 15 characters");
   });
 });
 
