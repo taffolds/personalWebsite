@@ -65,19 +65,6 @@ export async function sendFriendRequest(
   }
 }
 
-export async function findUserByNickname(nickname: string) {
-  const [findFriend] = await db
-    .select()
-    .from(users)
-    .where(eq(users.nickname, nickname)); // Maybe just be strict on this
-
-  return findFriend || null;
-}
-
-// Maybe there are two checks, one to find the complete user in backend, and one that selects all users, and only sends username to frontend
-// https://orm.drizzle.team/docs/rqb-v2#relations-filters
-// nickname LIKE "%param%"
-
 export async function confirmFriendship(
   requestId: number,
   userId: number,
@@ -198,7 +185,9 @@ export async function showPendingRequests(userId: number) {
 
 export async function searchForUsers(nickname: string) {
   const sanitised = checkValidity(nickname);
-  if (sanitised !== "Success") throw Error(sanitised);
+  if (!sanitised.match("Success")) {
+    return { success: false, error: sanitised.valueOf() };
+  }
 
   const res = await db
     .select({

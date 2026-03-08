@@ -1,10 +1,3 @@
-// Select all friend requests
-// Send a friend request
-// Accept a friend request
-// Decline a friend request
-
-// Select all friends
-
 import {
   showAllFriendRequests,
   sendFriendRequest,
@@ -14,6 +7,8 @@ import {
   searchForUsers,
   displayAllFriends,
   removeFriendship,
+  getFriendRequest,
+  getFriendship,
 } from "../../services/friendshipService.js";
 import { createTestUser, setNicknameTestUser } from "../helper.js";
 import { describe, it, expect } from "vitest";
@@ -127,10 +122,33 @@ describe("Find friend requests", () => {
     expect(friendRequests).not.toBeNull();
     expect(friendRequests).toHaveLength(2);
 
-    expect(friendRequests[0]!.fromUserId).toBe(friend1.id);
-    expect(friendRequests[1]!.fromUserId).toBe(friend2.id);
-    expect(friendRequests[0]!.fromNickname).toBe("Liz");
-    expect(friendRequests[1]!.fromNickname).toBe("Gertrude");
+    expect(friendRequests[0]!.friendId).toBe(friend1.id);
+    expect(friendRequests[1]!.friendId).toBe(friend2.id);
+    expect(friendRequests[0]!.nickname).toBe("Liz");
+    expect(friendRequests[1]!.nickname).toBe("Gertrude");
+  });
+});
+
+describe("Get friend request", () => {
+  it("should return friend request when it exists", async () => {
+    const user1 = await createTestUser();
+    const user2 = await createTestUser();
+
+    await sendFriendRequest(user1.id, user2.id);
+
+    const request = await getFriendRequest(user1.id, user2.id);
+
+    expect(request).not.toBeNull();
+    expect(request?.userId1).toBe(user1.id);
+    expect(request?.userId2).toBe(user2.id);
+  });
+
+  it("should return null when friend request does not exist", async () => {
+    const user1 = await createTestUser();
+    const user2 = await createTestUser();
+
+    const request = await getFriendRequest(user1.id, user2.id);
+    expect(request).toBeNull();
   });
 });
 
@@ -149,8 +167,8 @@ describe("Show outgoing requests", () => {
     const outgoingRequests = await showPendingRequests(sender.id);
 
     expect(outgoingRequests).toHaveLength(2);
-    expect(outgoingRequests[0]).toBe("Jack");
-    expect(outgoingRequests[1]).toBe("Jill");
+    expect(outgoingRequests[0]!.nickname).toBe("Jack");
+    expect(outgoingRequests[1]!.nickname).toBe("Jill");
   });
 
   it("should remove an outgoing request", async () => {
@@ -179,11 +197,12 @@ describe("Search for friends", () => {
 
     const searchResults = await searchForUsers("Jane");
     expect(searchResults).toHaveLength(1);
-    expect(searchResults[0]!.nickname).toBe("Jane");
+    if (Array.isArray(searchResults)) {
+      expect(searchResults[0]!.nickname).toBe("Jane");
+    }
   });
 
   it("should only display people within search params", async () => {
-    // am I testing drizzle or logic... hmmm
     const user1 = await createTestUser();
     const user2 = await createTestUser();
 
@@ -192,7 +211,9 @@ describe("Search for friends", () => {
 
     const searchResults = await searchForUsers("Jen");
     expect(searchResults).toHaveLength(1);
-    expect(searchResults[0]!.nickname).toBe("Jen");
+    if (Array.isArray(searchResults)) {
+      expect(searchResults[0]!.nickname).toBe("Jen");
+    }
   });
 
   it("should display all users containing 'ha'", async () => {
@@ -209,9 +230,11 @@ describe("Search for friends", () => {
     const searchResults = await searchForUsers("hA");
     // return search alphabetically
     expect(searchResults).toHaveLength(3);
-    expect(searchResults[0]!.nickname).toBe("Hank");
-    expect(searchResults[1]!.nickname).toBe("haNNa");
-    expect(searchResults[2]!.nickname).toBe("SHaNe"); // checking ordering working, lowest id, but alphabetically last
+    if (Array.isArray(searchResults)) {
+      expect(searchResults[0]!.nickname).toBe("Hank");
+      expect(searchResults[1]!.nickname).toBe("haNNa");
+      expect(searchResults[2]!.nickname).toBe("SHaNe"); // checking ordering working, lowest id, but alphabetically last
+    }
   });
 });
 
@@ -250,6 +273,37 @@ describe("Display friends", () => {
 
     const eveFriends = await displayAllFriends(eve.id);
     expect(eveFriends).toHaveLength(0);
+  });
+});
+
+describe("Get friendship", () => {
+  it("should return friendship when it exists", async () => {
+    const user1 = await createTestUser();
+    const user2 = await createTestUser();
+
+    await sendFriendRequest(user1.id, user2.id);
+
+    const incomingFriend = await showAllFriendRequests(user2.id);
+
+    await confirmFriendship(incomingFriend[0]!?.requestId, user2.id);
+
+    const friendList = await displayAllFriends(user1.id);
+    expect(friendList).toHaveLength(1);
+
+    const friendship = await getFriendship(user1.id, user2.id);
+
+    expect(friendship).not.toBeNull();
+    expect(friendship?.userId1).toBe(user1.id);
+    expect(friendship?.userId2).toBe(user2.id);
+  });
+
+  it("should return null when friendship does not exist", async () => {
+    const user1 = await createTestUser();
+    const user2 = await createTestUser();
+
+    const friendship = await getFriendship(user1.id, user2.id);
+
+    expect(friendship).toBeNull();
   });
 });
 
