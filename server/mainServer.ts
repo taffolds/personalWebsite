@@ -5,8 +5,7 @@ import friendshipApp from "./friendshipServer.js";
 import gameApp from "./gameServer.js";
 import { db } from "./db/index.js";
 import { sql } from "drizzle-orm";
-// remember serveStatic when going to production
-// import { serveStatic } from "@hono/node-server/serve-static";
+import { serveStatic } from "@hono/node-server/serve-static";
 
 // https://medium.com/@vivekg312003/understanding-about-orchestration-29a2b6b67fee
 
@@ -53,10 +52,14 @@ app.onError((e, c) => {
   );
 });
 
+if (process.env.NODE_ENV === "production") {
+  app.use("/*", serveStatic({ root: "../dist" }));
+}
+
 const port = Number(process.env.PORT) || 3000;
 
 serve({
   fetch: app.fetch,
   port: port,
-  hostname: "0.0.0.0", // For mobile development
+  // hostname: "0.0.0.0", // For mobile development
 });

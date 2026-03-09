@@ -10,6 +10,8 @@
     "dev:client": "vite",
     "dev:server": "cd server && npm run dev",
     "build": "vite build",
+    "build:railway": "npm install && npm run build && cd server && npm install",
+    "start": "cd server && npm start",
     "preview": "vite preview",
     "preview:full": "concurrently -k \"vite preview\" \"cd server && npm run dev\"",
     "prepare": "husky"
