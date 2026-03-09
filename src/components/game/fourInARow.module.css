@@ -238,9 +238,6 @@ dialog {
   transition: background-color 500ms ease-in-out;
 }
 
-.dialog:has(.forfeitContainer) {
-}
-
 .dialogContainer {
   padding: 10px;
   width: fit-content;
@@ -268,7 +265,10 @@ dialog {
 /* BUTTONS */
 .btnContainer {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
 }
 
 .gameBtn {
@@ -300,7 +300,6 @@ dialog {
 }
 
 .forfeitBtn {
-  margin-top: 30px;
   background-color: #ffd0d0;
 }
 
@@ -363,10 +362,6 @@ dialog {
     --cell-size: 70px;
     width: var(--cell-size);
     height: var(--cell-size);
-  }
-
-  .btnContainer {
-    flex-direction: row;
   }
 
   .endgameAnimation {

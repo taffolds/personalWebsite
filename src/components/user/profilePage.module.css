@@ -62,7 +62,8 @@ dialog[open]::backdrop {
   background-color: #f2ffd6;
   padding: 10px;
   width: 70vw;
-  height: 15vh;
+  height: fit-content;
+  min-height: fit-content;
 }
 
 .dialogOptionsWrapper {
@@ -76,7 +77,8 @@ dialog[open]::backdrop {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 5vh;
+  height: 50px;
+  width: 100px;
   flex-grow: 1;
   border-radius: 5px;
   border-width: 1px;
@@ -101,7 +103,8 @@ dialog[open]::backdrop {
 }
 
 #deleteProfileDialog {
-  height: 30vh;
+  height: fit-content;
+  min-height: fit-content;
 }
 
 /* EASTER EGG */
