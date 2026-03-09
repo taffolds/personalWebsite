@@ -64,17 +64,17 @@ export function AboutDevelopment() {
             just used their normal setCookie using the stored user id in the
             database. All seemed good, a user was validated for 30 days on my
             website. Not only that, but if they got logged out, they could log
-            in again to the same account using their google sub to validate the
+            in again to the same account using their Google sub to validate the
             user in my database, and then get a new cookie for 30 days. Then I
             looked at the payload, saw that the cookie was just id: 1.
           </p>
           <p>
             I sent a Postman request with Cookie: id: 1 to change the nickname
-            of that user, lo and behold, nothing was secure again. Lovely. I
-            found that Hono had a function to sign the cookie. I set up another
-            encryption key to sign this cookie, and now the cookie contained
-            enough random characters that no one's changing anyone else's name
-            any more.
+            of that user, lo and behold, nothing was secure. This needed fixing
+            before I could move further. I found out I that Hono had a function
+            to sign the cookie. I set up another encryption key to sign this
+            cookie, and now the cookie contained enough random characters that
+            no one's changing anyone else's name any more.
           </p>
         </details>
         <details className={styles.section}>
@@ -95,14 +95,15 @@ export function AboutDevelopment() {
             state of the game. For example if Alice and Bob have an active game,
             I don't want them to be able to request a new game. If they have a
             game that has been completed, then they need that possibility. I
-            tried go through all these possibilities so that I would only have
-            to make the one schema, and get it right the first time. Knowing
-            what data you are persisting, and why, helps make better endpoints
-            and debug messages to the user later. Now if only I wrote it all
-            down in one place, instead of scattered in word documents, comments
-            in the ER diagram, in my head, etc... Solo projects have their
-            charm. Having modelled it out and spent some time planning, using
-            the database to map opponents names to the games became very easy.
+            tried to go through all these possibilities so that I would only
+            have to make the one schema, and get it right the first time.
+            Knowing what data you are persisting, and why, helps make better
+            endpoints and debug messages to the user later. Now if only I wrote
+            it all down in one place, instead of scattered in word documents,
+            comments in the ER diagram, in my head, etc... Solo projects have
+            their charm. Having modelled it out and spent some time planning,
+            using the database to map opponents names to the games became very
+            easy.
           </p>
           <p>
             As I moved on in the project, a few columns did get altered. I also
@@ -146,8 +147,8 @@ export function AboutDevelopment() {
             doing TTD on an orchestration service is that you really have to
             think about what you want the behaviour of the backend to be and
             since I am doing the full stack for this, I could also make mental
-            as to what kind of error messages the user should receive in the
-            front end once the backend was done, as well as what they just
+            notes as to what kind of error messages the user should receive in
+            the front end once the backend was done, as well as what they just
             shouldn't be able access.
           </p>
           <p>
@@ -168,7 +169,7 @@ export function AboutDevelopment() {
             was working together well. I proceeded through the same steps as
             earlier, writing tests for the gameService. Then I made tests for
             the gameServer. This was the chance to really check for any
-            oversights commited during the coding frenzy on the train, and make
+            oversights committed during the coding frenzy on the train, and make
             sure it was robust. Having the tests in place allowed me to safely
             refactor the game related code. Once this was done I refactored
             tests to be more robust.
@@ -180,15 +181,15 @@ export function AboutDevelopment() {
           </summary>
           <p>
             I'd started some minor frontend design on the homepage and the page
-            that you are currently reading. This was so that it wouldn't be feel
+            that you are currently reading. This was so that it wouldn't feel
             like a massive undertaking to do all the frontend from scratch once
             I had finished up the backend. Four in a row had been styled right
             from the beginning, as that was the original intention with the
             website.
           </p>
           <p>
-            The first first real hurdle came in how to display friend requests
-            to users without using a lot of space, or having unnecessarily long
+            The first real hurdle came in how to display friend requests to
+            users without using a lot of space, or having unnecessarily long
             descriptions of the functionality. There was also the matter of not
             using convoluted backend language like incoming and outgoing. I
             looked at different UIs, and landed on using a requests header, with
@@ -201,12 +202,14 @@ export function AboutDevelopment() {
             I also wanted the information to be displayed to the user in a
             coherent fashion. For minor feedback, I used react-hot-toast to give
             user feedback. For bigger actions, like removing a friend, I used
-            the dialog tag, to prevent the user from accidentally commiting an
+            the dialog tag, to prevent the user from accidentally committing an
             action that they didn't intend. I also spent a while looking for
             ideas on how to make the buttons obvious in their actions for the
             user. I read that you should use neutral colours for cancel
-            functions, and saw that the buttons I liked the most had a blue
-            tint.
+            functions, red for rejecting, then pick a colour that makes your
+            action obvious when confirming. I have consistently styled the
+            buttons to become darker when you hover over them, regardless of
+            what function they are performing.
           </p>
           <p>
             I wanted the user to be able to easily navigate the page as well. I
@@ -234,15 +237,70 @@ export function AboutDevelopment() {
             making process be as intuitive as possible.
           </p>
           <p>
-            I did unfortunately accrue some technical debt in the frontend in
-            trying to get this deployed in a reasonable time frame. A lot of the
-            frontend is begging for a good refactor. I tried to structure the
-            code in such a manner that I can easily pick up the sections in the
-            future so that I can refactor them. I am also aware that my commits
-            are very big, often commiting a finished page in one commit. Even
-            though the commit is big, the work done to achieve the styling has
-            happened over several days and iterations, just that all the changes
-            have been local. I didn't want to commit pages with styling issues.
+            I did unfortunately accrue some technical debt in the frontend due
+            to prioritising a functioning build, rather than getting everything
+            completely perfect. I made sure that the frontend was up to a well
+            functioning standard where the user action flows worked seamlessly
+            and intuitively. I tried to structure the code in such a manner that
+            I can easily pick up the sections in the future so that I can
+            refactor them. I am also aware that my commits are very big, often
+            committing a finished page in one commit. Even though the commit is
+            big, the work done to achieve the styling has happened over several
+            days and iterations, just that all the changes have been local. I
+            didn't want to commit pages with styling issues.
+          </p>
+        </details>
+        <details className={styles.section}>
+          <summary>
+            <h3>Testing</h3>
+          </summary>
+          <p>
+            Once I had finished designing the frontend, it was time to go back
+            to my tests. I had changed some of my endpoints to send payloads
+            that were better suited to my use cases in the frontend. I didn't
+            know how many of the endpoints would need altering, so I waited with
+            refactoring tests until I had finished the frontend design. After
+            this I ran tests with coverage, and checked where the coverage had
+            dropped after creating new endpoints. I have tried to cover both
+            fringe cases and normal behaviour in both the controllers and the
+            services. I have aimed for high test coverage, testing everything
+            that I believe is important for the site to function properly. I
+            have also tested my endpoints extensively for validation, because I
+            want to stop anyone unauthorised from altering the data in my
+            database. Deploying untested code to the internet is asking for
+            trouble.
+          </p>
+        </details>
+        <details className={styles.section}>
+          <summary>
+            <h3>Deployment</h3>
+          </summary>
+          <p>
+            I knew from the start of the project that I wanted to run my own SQL
+            database. I also knew that the userbase would probably be minimal,
+            so I looked into hosting where I can cut off the traffic if the load
+            on my site grows, instead of suddenly getting slapped by a massive
+            bill.
+          </p>
+          <p>
+            I picked Railway to deploy as I could upload everything in one
+            place, straight from my GitHub repository. I have done my best to
+            keep my code as clean as possible throughout development, to avoid
+            having a long and painful refactor going into production. When I ran
+            the first build, almost everything looked the way I wanted it to,
+            which was a fantastic feeling. Getting the build deployed took some
+            time, as I had to get the environment variables right. Fixing the
+            OAuth for Google took a while, as did understanding how to push the
+            database to Railway.
+          </p>
+          <p>
+            I bought my own domain, because I have wanted my own website for
+            years. This was also a learning experience, as I had to use a CNAME
+            record to hook up Railway to my domain on one.com. I set the TTL to
+            be as low as possible, so that the website would propagate as fast
+            as possible on the DNS servers. I was surprised at how fast this
+            happened. Once it was up on all the servers, I increased the TTL
+            again to avoid loading the servers unnecessarily.
           </p>
         </details>
         <details className={styles.section}>
@@ -257,15 +315,15 @@ export function AboutDevelopment() {
             fleshing that out properly.
           </p>
           <p>
-            I really enjoyed doing TDD for parts of the project, especially
-            setting up the friendship service and controller. It forced me to
-            think about how I want my backend to interact, as well as helping me
-            to really understand the architecture of the whole website. I had
-            the frontend in mind whilst setting it up. I also enjoyed the
-            process of refactoring tests and code together as they both
-            developed. It made me really have to have a solid picture of what
-            the codebase was doing, as well as telling me if I had made a
-            mistake in my code when refactoring.
+            I really enjoyed doing Test-Driven Development for parts of the
+            project, especially setting up the friendship service and
+            controller. It forced me to think about how I want my backend to
+            interact, as well as helping me to really understand the
+            architecture of the whole website. I had the frontend in mind whilst
+            setting it up. I also enjoyed the process of refactoring tests and
+            code together as they both developed. It made me really have to have
+            a solid picture of what the codebase was doing, as well as telling
+            me if I had made a mistake in my code when refactoring.
           </p>
           <p>
             The biggest reward came when I was designing the frontend. As I was

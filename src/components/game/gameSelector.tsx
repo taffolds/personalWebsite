@@ -41,10 +41,22 @@ export function GameSelector() {
             Offline
           </button>
         </div>
-        <dialog ref={dialogRef}>
+        <dialog className={styles.dialogContainer} ref={dialogRef}>
           <p>Must be logged in to access this page</p>
-          <button onClick={() => navigate("/login")}>Login</button>
-          <button onClick={() => dialogRef.current?.close()}>Close</button>
+          <div className={styles.btnContainer}>
+            <button
+              className={`${styles.generalBtn} ${styles.loginBtn}`}
+              onClick={() => navigate("/login")}
+            >
+              Login
+            </button>
+            <button
+              className={`${styles.generalBtn} ${styles.closeBtn}`}
+              onClick={() => dialogRef.current?.close()}
+            >
+              Close
+            </button>
+          </div>
         </dialog>
       </div>
     </>

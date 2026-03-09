@@ -23,7 +23,7 @@
 .section p {
   text-align: justify;
   line-height: 1.5;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
 
 .container h3 {
@@ -39,20 +39,19 @@
   .intro {
     text-align: justify;
     line-height: 1.5;
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 
   .section p {
-    line-height: 1.7;
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 
   .container h1 {
-    font-size: 3rem;
+    font-size: 5rem;
     text-align: center;
   }
 
   .container h3 {
-    font-size: 2rem;
+    font-size: 3rem;
   }
 }

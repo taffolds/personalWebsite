@@ -43,6 +43,44 @@ p {
   cursor: pointer;
 }
 
+dialog {
+  padding: 0;
+  border-radius: 10px;
+  border-style: solid;
+  border-color: #0f5113;
+  transition: background-color 500ms ease-in-out;
+}
+
+.dialogContainer {
+  background-color: #f2ffd6;
+  padding: 10px;
+  width: fit-content;
+  max-width: 80vw;
+  height: fit-content;
+  position: relative;
+}
+
+.btnContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.loginBtn {
+  background-color: #82da84;
+}
+
+.loginBtn:hover {
+  background-color: #5cb85d;
+}
+
+.closeBtn {
+  background-color: #dfe6e1;
+}
+
+.closeBtn:hover {
+  background-color: #bdbdba;
+}
+
 .onlineBtn {
   background-color: #acf8db;
 }
