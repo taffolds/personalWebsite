@@ -8,7 +8,7 @@
     "test:once": "vitest run",
     "test:coverage": "vitest run --coverage",
     "dev": "tsx --watch mainServer.ts",
-    "start": "node --loader tsx mainServer.js",
+    "start": "node --loader tsx mainServer.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
@@ -22,7 +22,6 @@
     "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.8",
     "nanoid": "^5.1.6",
-    "tsx": "^4.21.0",
     "vitest": "^4.0.18"
   },
   "dependencies": {
@@ -30,6 +29,7 @@
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.11.7",
-    "pg": "^8.17.2"
+    "pg": "^8.17.2",
+    "tsx": "^4.21.0"
   }
 }
