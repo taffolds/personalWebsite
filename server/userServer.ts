@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
-import dotenv from "dotenv";
 import {
   createUser,
   findUserByGoogleId,
@@ -15,7 +14,10 @@ import {
   startLogin,
 } from "./services/oauth.js";
 
-dotenv.config();
+if (process.env.NODE_ENV !== "production") {
+  const dotenv = await import("dotenv");
+  dotenv.config();
+}
 
 const userApp = new Hono();
 
