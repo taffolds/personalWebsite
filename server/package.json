@@ -8,7 +8,7 @@
     "test:once": "vitest run",
     "test:coverage": "vitest run --coverage",
     "dev": "tsx --watch mainServer.ts",
-    "start": "tsx mainServer.ts",
+    "start": "npx tsx mainServer.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
