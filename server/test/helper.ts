@@ -2,6 +2,7 @@ import { createUser, updateNickname } from "../services/userService.js";
 import { nanoid } from "nanoid";
 import { db } from "../db/index.js";
 import { friendships, games } from "../db/schema.js";
+import { eq } from "drizzle-orm";
 
 export async function createTestUser(googleId?: string, email?: string) {
   const uniqueId = nanoid(10);
@@ -53,4 +54,16 @@ export async function createTestGame(
 
   if (!game[0]) throw new Error("Failed to create test game");
   return game[0];
+}
+
+export async function alterTestGame(
+  gameId: number,
+  status: "in_progress" | "completed" | "draw" | "forfeited",
+) {
+  await db
+    .update(games)
+    .set({
+      status: status,
+    })
+    .where(eq(games.id, gameId));
 }

@@ -6,7 +6,7 @@ import {
   checkTurn,
   sendGameRequest,
   acceptGameRequest,
-  showAllGameRequests,
+  showIncomingGameRequests,
   getUserGames,
   getCurrentGame,
   forfeitGame,
@@ -77,7 +77,13 @@ gameApp.post("/requests/send", async (c) => {
 
   const existingRequest = await getGameRequest(validatedUser.user.id, friendId);
   if (existingRequest)
-    return c.json({ message: "Game request already exists" }, 409);
+    return c.json(
+      {
+        message: "Game request already exists",
+        requestId: existingRequest.id,
+      },
+      409,
+    );
 
   const existingGame = await checkGameExists(validatedUser.user.id, friendId);
   if (existingGame)
@@ -157,7 +163,7 @@ gameApp.get("/requests/incoming", async (c) => {
       { message: validatedUser.message },
       validatedUser.status as any,
     );
-  const requests = await showAllGameRequests(validatedUser.user.id);
+  const requests = await showIncomingGameRequests(validatedUser.user.id);
   return c.json(requests, 200);
 });
 
@@ -214,7 +220,7 @@ gameApp.get("/game/:gameId", async (c) => {
 
   return c.json(game);
 });
-
+// TEST
 gameApp.get("/game/:gameId/status", async (c) => {
   const validatedUser = await validateUserDetails(c);
   if ("message" in validatedUser)

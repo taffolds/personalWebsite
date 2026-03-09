@@ -5,6 +5,7 @@ import {
   createTestFriendship,
   setNicknameTestUser,
   createTestGame,
+  alterTestGame,
 } from "./helper.js";
 import { getSignedCookie } from "hono/cookie";
 
@@ -278,6 +279,152 @@ describe("Send game request", () => {
   });
 });
 
+describe("Remove game request", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+  it("should remove game request", async () => {
+    const user1 = await createTestUser();
+    const user2 = await createTestUser();
+    await createTestFriendship(user1.id, user2.id);
+    await setNicknameTestUser(user1.id, "popeye");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user1.id));
+
+    const res = await gameApp.request("/requests/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        friendId: user2.id,
+        firstMove: user2.id,
+      }),
+    });
+
+    expect(res.status).toBe(201);
+    const createdData = await res.json();
+    const requestId = createdData.requestId;
+
+    const deletedRequest = await gameApp.request("/requests/remove", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        requestId: requestId,
+      }),
+    });
+
+    expect(deletedRequest.status).toBe(200);
+    const data = await deletedRequest.json();
+    expect(data.message).toBe("Request removed");
+  });
+
+  it("should require request id", async () => {
+    const user = await createTestUser();
+    await setNicknameTestUser(user.id, "olive");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
+
+    const emptyBody = await gameApp.request("/requests/remove", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
+
+    expect(emptyBody.status).toBe(400);
+    const data = await emptyBody.json();
+    expect(data.message).toBe("No request id");
+  });
+
+  it("should stop others from removing your game request", async () => {
+    const alice = await createTestUser();
+    const bob = await createTestUser();
+    const eve = await createTestUser();
+    await createTestFriendship(alice.id, bob.id);
+    await setNicknameTestUser(alice.id, "alice");
+    await setNicknameTestUser(eve.id, "eve");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(alice.id));
+
+    const res = await gameApp.request("/requests/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        friendId: bob.id,
+        firstMove: bob.id,
+      }),
+    });
+
+    expect(res.status).toBe(201);
+    const createdData = await res.json();
+    const requestId = createdData.requestId;
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(eve.id));
+
+    const deletedRequest = await gameApp.request("/requests/remove", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        requestId: requestId,
+      }),
+    });
+
+    expect(deletedRequest.status).toBe(403);
+    const data = await deletedRequest.json();
+    expect(data.message).toBe("Not your game request");
+  });
+
+  it("should return 404 not found", async () => {
+    const user = await createTestUser();
+    await setNicknameTestUser(user.id, "olive");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
+
+    const emptyBody = await gameApp.request("/requests/remove", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        requestId: 1202030,
+      }),
+    });
+
+    expect(emptyBody.status).toBe(404);
+    const data = await emptyBody.json();
+    expect(data.message).toBe("Request not found");
+  });
+
+  it("should require authentication", async () => {
+    const user = await createTestUser();
+    await setNicknameTestUser(user.id, "ronald");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
+
+    const res = await gameApp.request("/requests/remove", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        requestId: 1202030,
+      }),
+    });
+    expect(res.status).toBe(401);
+
+    const data = await res.json();
+    expect(data.message).toBe("Not authenticated");
+  });
+});
+
 describe("Accept game request", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -439,8 +586,8 @@ describe("Incoming game requests", () => {
     expect(incoming).toHaveLength(1);
     expect(incoming[0].requestId).toBe(reqId);
     expect(incoming[0].firstMove).toBe(user2.id);
-    expect(incoming[0].fromNickname).toBe("hedda");
-    expect(incoming[0].fromUserId).toBe(user1.id);
+    expect(incoming[0].nickname).toBe("hedda");
+    expect(incoming[0].friendId).toBe(user1.id);
   });
   it("should require validation", async () => {
     const user = await createTestUser();
@@ -464,6 +611,145 @@ describe("Incoming game requests", () => {
     const data = await res.json();
 
     expect(data).toHaveLength(0);
+  });
+});
+
+describe("Outgoing game requests", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+  it("should display outgoing game requests", async () => {
+    const user1 = await createTestUser();
+    const user2 = await createTestUser();
+    await setNicknameTestUser(user1.id, "boris");
+    await setNicknameTestUser(user2.id, "humphrey");
+    await createTestFriendship(user1.id, user2.id);
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user1.id));
+
+    const sentReq = await gameApp.request("/requests/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        friendId: user2.id,
+        firstMove: user2.id, // intentional to test two in one
+      }),
+    });
+
+    expect(sentReq.status).toBe(201);
+    const sentReqData = await sentReq.json();
+    const reqId = sentReqData.requestId;
+
+    const res = await gameApp.request("/requests/outgoing");
+
+    expect(res.status).toBe(200);
+
+    const outgoing = await res.json();
+    expect(outgoing).toHaveLength(1);
+    expect(outgoing[0].requestId).toBe(reqId);
+    expect(outgoing[0].firstMove).toBe(user2.id);
+    expect(outgoing[0].nickname).toBe("humphrey");
+    expect(outgoing[0].friendId).toBe(user2.id);
+  });
+  it("should require validation", async () => {
+    const user = await createTestUser();
+    await setNicknameTestUser(user.id, "petunia");
+
+    const res = await gameApp.request("/requests/outgoing");
+
+    expect(res.status).toBe(404);
+    const data = await res.json();
+    expect(data.message).toBe("User not found");
+  });
+  it("should return 200 OK if no requests", async () => {
+    const user = await createTestUser();
+    await setNicknameTestUser(user.id, "flora");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
+
+    const res = await gameApp.request("/requests/outgoing");
+    expect(res.status).toBe(200);
+
+    const data = await res.json();
+
+    expect(data).toHaveLength(0);
+  });
+
+  it("should require authentication", async () => {
+    const user = await createTestUser();
+    await setNicknameTestUser(user.id, "tricia");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
+
+    const res = await gameApp.request("/requests/outgoing");
+    expect(res.status).toBe(401);
+
+    const data = await res.json();
+    expect(data.message).toBe("Not authenticated");
+  });
+});
+
+describe("Historic games", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+  it("should show historic games", async () => {
+    const user = await createTestUser();
+    const friend1 = await createTestUser();
+    const friend2 = await createTestUser();
+    const friend3 = await createTestUser();
+    await setNicknameTestUser(user.id, "pete");
+
+    await createTestFriendship(user.id, friend1.id);
+    await createTestFriendship(user.id, friend2.id);
+    await createTestFriendship(user.id, friend3.id);
+
+    const game1 = await createTestGame(user.id, friend1.id, user.id);
+    const game2 = await createTestGame(user.id, friend2.id, user.id);
+    await createTestGame(user.id, friend3.id, user.id);
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
+
+    const game1Move = await gameApp.request(`/game/${game1.id}/move`, {
+      method: "POST",
+      body: JSON.stringify({ move: 0 }),
+    });
+
+    expect(game1Move.status).toBe(201);
+
+    const game2Move = await gameApp.request(`/game/${game2.id}/move`, {
+      method: "POST",
+      body: JSON.stringify({ move: 0 }),
+    });
+
+    expect(game2Move.status).toBe(201);
+
+    await alterTestGame(game1.id, "completed");
+    await alterTestGame(game2.id, "forfeited");
+
+    const res = await gameApp.request("/historic");
+    expect(res.status).toBe(200);
+
+    const data = await res.json();
+
+    expect(data).toHaveLength(2); // 2 tests for 1
+    expect(data[0].opponentId).toBe(friend2.id); // Order by last move
+    expect(data[1].opponentId).toBe(friend1.id);
+  });
+
+  it("should require authentication", async () => {
+    const user = await createTestUser();
+    await setNicknameTestUser(user.id, "tobias");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
+
+    const res = await gameApp.request("/historic");
+    expect(res.status).toBe(401);
+
+    const data = await res.json();
+    expect(data.message).toBe("Not authenticated");
   });
 });
 
@@ -585,6 +871,57 @@ describe("Current game", () => {
     expect(res.status).toBe(404);
     const data = await res.json();
     expect(data.message).toContain("Couldn't find game");
+  });
+});
+
+describe("Get game status", () => {
+  afterEach(async () => {
+    vi.restoreAllMocks();
+  });
+  it("should show game status", async () => {
+    const user = await createTestUser();
+    const receiver = await createTestUser();
+    await setNicknameTestUser(user.id, "dudley");
+    await createTestFriendship(user.id, receiver.id);
+    const game = await createTestGame(user.id, receiver.id, user.id);
+    await alterTestGame(game.id, "completed");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(user.id));
+
+    const res = await gameApp.request(`/game/${game.id}/status`);
+    expect(res.status).toBe(200);
+
+    const data = await res.json();
+    expect(data.status).toBe("completed");
+  });
+
+  it("should deny access to others games", async () => {
+    const alice = await createTestUser();
+    const bob = await createTestUser();
+    const eve = await createTestUser();
+    await setNicknameTestUser(eve.id, "eve");
+    await createTestFriendship(alice.id, bob.id);
+    const game = await createTestGame(alice.id, bob.id, alice.id);
+
+    vi.mocked(getSignedCookie).mockResolvedValue(String(eve.id));
+    const res = await gameApp.request(`/game/${game.id}/status`);
+    expect(res.status).toBe(403);
+
+    const data = await res.json();
+    expect(data.message).toBe("Not your game");
+  });
+
+  it("should require authentication", async () => {
+    const user = await createTestUser();
+    await setNicknameTestUser(user.id, "timothy");
+
+    vi.mocked(getSignedCookie).mockResolvedValue(undefined);
+
+    const res = await gameApp.request("/game/1/status");
+    expect(res.status).toBe(401);
+
+    const data = await res.json();
+    expect(data.message).toBe("Not authenticated");
   });
 });
 
