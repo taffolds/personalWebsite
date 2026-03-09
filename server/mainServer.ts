@@ -43,6 +43,7 @@ app.route("/api/friendship", friendshipApp);
 app.route("/api/games", gameApp);
 
 app.onError((e, c) => {
+  console.error(e);
   return c.json(
     {
       success: false,
@@ -53,7 +54,9 @@ app.onError((e, c) => {
 });
 
 if (process.env.NODE_ENV === "production") {
-  app.use("/*", serveStatic({ root: "../dist" }));
+  app.use("/assets/*", serveStatic({ root: "../dist" }));
+
+  app.get("*", serveStatic({ path: "../dist/index.html" }));
 }
 
 const port = Number(process.env.PORT) || 3000;
