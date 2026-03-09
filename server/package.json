@@ -8,6 +8,7 @@
     "test:once": "vitest run",
     "test:coverage": "vitest run --coverage",
     "dev": "tsx --watch mainServer.ts",
+    "start": "node --loader tsx mainServer.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
