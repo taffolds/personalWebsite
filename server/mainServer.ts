@@ -58,6 +58,10 @@ if (process.env.NODE_ENV === "production") {
 
 const port = Number(process.env.PORT) || 3000;
 
+console.log("Starting server...");
+console.log("PORT", port);
+console.log("NODE_ENV: " + process.env.NODE_ENV);
+
 serve({
   fetch: app.fetch,
   port: port,
