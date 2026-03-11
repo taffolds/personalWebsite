@@ -725,7 +725,7 @@ export function UserGames() {
                         onClick={async () => {
                           await handleSendGameRequest(
                             selectedFriend.id,
-                            selectedFriend.id,
+                            profile.id,
                           );
                           newGameDialogRef.current?.close();
                           setNewReqStep(1);
