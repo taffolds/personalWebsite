@@ -157,7 +157,7 @@ export function AboutDevelopment() {
             Once I knew what the backend structure would look like for the
             userService, and userServer, I wrote tests for for both files. Now
             that I had the structure and tests in mind, I decided to go back to
-            test driven development for the friendship part of the app. I
+            Test-Driven Development for the friendship part of the app. I
             started by writing tests for all the calls I knew my service would
             need to do on the database. Then I wrote all the code to make these
             tests pass in the service. Then came the controller. The magic with
@@ -287,14 +287,6 @@ export function AboutDevelopment() {
           <summary>
             <h3>Testing</h3>
           </summary>
-          <a href="/design/TestCoverage.jpg" target="_blank">
-            <img
-              className={styles.image}
-              src={"/design/TestCoverage.jpg"}
-              alt={"Test Coverage Report"}
-              loading={"lazy"}
-            />
-          </a>
           <p>
             Once I had finished designing the frontend, it was time to go back
             to my tests. I had changed some of my endpoints to send payloads
@@ -308,8 +300,23 @@ export function AboutDevelopment() {
             that I believe is important for the site to function properly. I
             have also tested my endpoints extensively for validation, because I
             want to stop anyone unauthorised from altering the data in my
-            database. Deploying untested code to the internet is asking for
-            trouble.
+            database.
+          </p>
+          <a href="/design/TestCoverage.jpg" target="_blank">
+            <img
+              className={styles.image}
+              src={"/design/TestCoverage.jpg"}
+              alt={"Test Coverage Report"}
+              loading={"lazy"}
+            />
+          </a>
+          <p>
+            The lower coverage on schema.ts and oauth.ts is deliberate. Testing
+            the schema would just be testing database definitions, and is the
+            equivalent of testing getters and setters. The OAuth is just calls
+            to Google's OAuth library, which they have already tested. I focused
+            my testing efforts where it really matters, which is the controllers
+            and services, where the functionality of the page lives.
           </p>
         </details>
         <details className={styles.section}>
