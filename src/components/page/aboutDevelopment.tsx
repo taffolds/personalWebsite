@@ -20,7 +20,7 @@ export function AboutDevelopment() {
         </p>
         <details className={styles.section}>
           <summary>
-            <h3>Initial Game Development</h3>
+            <h3>Game Development</h3>
           </summary>
           <p>
             When I first tried to program this game I ended up hard coding all
@@ -31,18 +31,27 @@ export function AboutDevelopment() {
             other validating as a win. Once the tests passed, I created new
             tests for further win conditions.
           </p>
+          <a href="/design/TestOfflineGame.jpg" target="_blank">
+            <img
+              className={styles.image}
+              src={"/design/TestOfflineGame.jpg"}
+              alt={"Tests for initial version of game"}
+              loading={"lazy"}
+            />
+          </a>
           <p>
             I kept this going back and forth, which can be seen in the earliest
             commits in this repository. I always wrote the tests before writing
             any logic, though that isn't always visible in the commits as I got
-            a little eager. It was an interesting experience trying out TDD, and
-            it was fun knowing that if my tests passed, I wouldn't have to
-            manually test the game by clicking the board in the browser.
+            a little eager. It was an interesting experience trying out
+            Test-Driven Development, and it was fun knowing that if my tests
+            passed, I wouldn't have to manually test the game by clicking the
+            board in the browser.
           </p>
         </details>
         <details className={styles.section}>
           <summary>
-            <h3>OpenID, cookies and tokens</h3>
+            <h3>Authentication</h3>
           </summary>
           <p>
             The next step was fixing OAuth. I have done login with Google
@@ -89,6 +98,14 @@ export function AboutDevelopment() {
             friend requests, which users are friends with each other, as well as
             game requests and the games themselves.
           </p>
+          <a href="/design/ERModel.jpg" target="_blank">
+            <img
+              className={styles.image}
+              src={"/design/ERModel.jpg"}
+              alt={"ER Model"}
+              loading={"lazy"}
+            />
+          </a>
           <p>
             I also wanted to be able to view earlier games with friends, so I
             had to make a table to store games. This also meant tracking the
@@ -198,6 +215,14 @@ export function AboutDevelopment() {
             struggle that took multiple hours to work out, but it was absolutely
             worth it.
           </p>
+          <a href="/design/ChallengePage.jpg" target="_blank">
+            <img
+              className={`${styles.image} ${styles.paper}`}
+              src={"/design/ChallengePage.jpg"}
+              alt={"Sketching a design for games page"}
+              loading={"lazy"}
+            />
+          </a>
           <p>
             I also wanted the information to be displayed to the user in a
             coherent fashion. For minor feedback, I used react-hot-toast to give
@@ -236,6 +261,14 @@ export function AboutDevelopment() {
             started with the mobile layout first. It made the layout decision
             making process be as intuitive as possible.
           </p>
+          <a href="/design/HandlingRematches.jpg" target="_blank">
+            <img
+              className={`${styles.image} ${styles.paper}`}
+              src={"/design/HandlingRematches.jpg"}
+              alt={"Planning a user friendly way to handle rematches"}
+              loading={"lazy"}
+            />
+          </a>
           <p>
             I did unfortunately accrue some technical debt in the frontend due
             to prioritising a functioning build, rather than getting everything
@@ -254,6 +287,14 @@ export function AboutDevelopment() {
           <summary>
             <h3>Testing</h3>
           </summary>
+          <a href="/design/TestCoverage.jpg" target="_blank">
+            <img
+              className={styles.image}
+              src={"/design/TestCoverage.jpg"}
+              alt={"Test Coverage Report"}
+              loading={"lazy"}
+            />
+          </a>
           <p>
             Once I had finished designing the frontend, it was time to go back
             to my tests. I had changed some of my endpoints to send payloads
@@ -301,6 +342,12 @@ export function AboutDevelopment() {
             as possible on the DNS servers. I was surprised at how fast this
             happened. Once it was up on all the servers, I increased the TTL
             again to avoid loading the servers unnecessarily.
+          </p>
+          <p>
+            What was really nice with deploying to Railway was that any time I
+            had to make a change after the initial deployment, committing to
+            main was enough to trigger a redeployment automatically, so any
+            issues that arose could be quickly ironed out.
           </p>
         </details>
         <details className={styles.section}>
