@@ -1,7 +1,20 @@
 .container {
   padding: 16px;
+  padding-top: 2px;
   margin: 0 auto;
   font-family: Bahnschrift, sans-serif;
+}
+
+.pnpContainer {
+  /* Paragraph & Picture */
+  display: flex;
+  flex-direction: column;
+}
+
+.prettyPics {
+  /* For lack of a better name, can be renamed */
+  /* Do not change without checking mobile view */
+  flex-direction: column-reverse;
 }
 
 .section {
@@ -9,6 +22,7 @@
 }
 
 h1 {
+  margin-bottom: -5px;
   text-align: center;
   font-size: 3rem;
 }
@@ -20,7 +34,7 @@ h1 {
 .container p {
   text-align: justify;
   line-height: 1.5;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 }
 
 a {
@@ -34,6 +48,14 @@ a:active {
   color: inherit;
 }
 
+.image {
+  display: flex;
+  max-width: 100%;
+  height: auto;
+  margin: 10px auto;
+  border-radius: 8px;
+}
+
 @media (min-width: 768px) {
   .container {
     padding-left: 20px;
@@ -43,9 +65,61 @@ a:active {
   .container p {
     line-height: 1.7;
     font-size: 1.7rem;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .pnpContainer {
+    flex-direction: column;
+  }
+
+  .prettyPics {
+    /* For lack of a better name, can be renamed */
+    /* Do not change without checking mobile view */
+    flex-direction: column-reverse;
   }
 
   .container h1 {
     font-size: 5rem;
+  }
+
+  .image {
+    max-width: 500px;
+  }
+}
+
+@media (min-width: 900px) {
+  .section {
+    flex: 2;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .container h1 {
+    font-size: 7rem;
+    margin-bottom: 30px;
+  }
+
+  .image {
+    flex: 1;
+    max-width: 350px;
+    margin: 10px;
+  }
+
+  .image:nth-child(even) {
+    margin-left: 30px;
+  }
+
+  .image:nth-child(odd) {
+    margin-right: 30px;
+  }
+
+  .container {
+    padding-left: 100px;
+    padding-right: 100px;
+  }
+
+  .pnpContainer {
+    flex-direction: row;
   }
 }

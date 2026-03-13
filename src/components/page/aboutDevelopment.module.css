@@ -4,6 +4,11 @@
   font-size: 1.25rem;
 }
 
+.sourceCode {
+  text-align: center;
+  font-size: 1.5rem;
+}
+
 .container {
   padding: 16px;
   margin: 0 auto;
@@ -24,6 +29,11 @@
   text-align: justify;
   line-height: 1.5;
   font-size: 1.25rem;
+}
+
+.container h1 {
+  font-size: 3rem;
+  font-weight: bolder;
 }
 
 .container h3 {
@@ -50,6 +60,10 @@
     text-align: justify;
     line-height: 1.5;
     font-size: 2rem;
+  }
+
+  .sourceCode {
+    font-size: 2.5rem;
   }
 
   .section p {

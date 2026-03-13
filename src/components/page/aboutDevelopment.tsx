@@ -8,6 +8,12 @@ export function AboutDevelopment() {
       <Banner />
       <div className={styles.container}>
         <h1>About Development</h1>
+        <p className={styles.sourceCode}>
+          All source code available{" "}
+          <a href="https://github.com/taffolds/personalWebsite" target="_blank">
+            here
+          </a>
+        </p>
         <p className={styles.intro}>
           This is the development process for my website. I have recently
           learned how to make a React app for my exam, and I wanted to expand

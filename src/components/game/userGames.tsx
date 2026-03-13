@@ -725,7 +725,7 @@ export function UserGames() {
                         onClick={async () => {
                           await handleSendGameRequest(
                             selectedFriend.id,
-                            profile.id, // comment to make commit work, remove later
+                            profile.id,
                           );
                           newGameDialogRef.current?.close();
                           setNewReqStep(1);
