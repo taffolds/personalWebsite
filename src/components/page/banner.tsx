@@ -17,17 +17,30 @@ const Banner = () => {
   const targetRef = useRef<HTMLElement>(null);
   const toggle = () => setIsOpen(!isOpen);
   const hide = () => setIsOpen(false);
-  const show = () => setIsOpen(true);
+  // const show = () => setIsOpen(true); /* See comment grep onFocus={show} */
 
   useEffect(() => {
-    const closeMenu = (event: KeyboardEvent) => {
+    const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsOpen(false);
       }
     };
-    window.addEventListener("keydown", closeMenu);
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        targetRef.current &&
+        !targetRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscKey);
+    document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
-      window.removeEventListener("keydown", closeMenu);
+      window.removeEventListener("keydown", handleEscKey);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -58,8 +71,10 @@ const Banner = () => {
             <NavLink
               to={nav.link}
               onClick={hide}
+              /* If I ever decide that the menu should stay open again when clicking outside
               onBlur={hide}
               onFocus={show}
+              */
               className={({ isActive }) => (isActive ? styles.active : "")}
             >
               {nav.text}
