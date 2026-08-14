@@ -542,7 +542,7 @@ export function UserGames() {
                         <div className={styles.gamesNickname}>
                           <div className={styles.redPiece}></div>
                           <div className={styles.dialogNames}>
-                            You vs. {gameRequest.nickname}
+                            {gameRequest.nickname} vs. you
                           </div>
                           <div className={styles.bluePiece}></div>
                         </div>
