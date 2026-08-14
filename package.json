@@ -39,7 +39,7 @@
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
